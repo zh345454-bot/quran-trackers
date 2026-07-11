@@ -1,0 +1,13 @@
+{
+  "name": "Manzil Tracker",
+  "short_name": "Manzil",
+  "start_url": "manzil-tracker.html",
+  "scope": "manzil-tracker.html",
+  "display": "standalone",
+  "background_color": "#faf7f2",
+  "theme_color": "#c8922a",
+  "icons": [
+    { "src": "icon-manzil-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-manzil-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

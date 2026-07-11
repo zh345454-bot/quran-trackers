@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quran Trackers</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f9f8f3;
+    margin: 0;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  h1 { color: #2c2416; font-size: 22px; margin-bottom: 30px; }
+  .card {
+    display: block;
+    width: 100%;
+    max-width: 340px;
+    background: #fff;
+    border: 1px solid #dcd7c5;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .card h2 { margin: 0 0 6px 0; font-size: 18px; }
+  .card p { margin: 0; font-size: 14px; color: #7a6a52; }
+  .manzil h2 { color: #c8922a; }
+  .murajaah h2 { color: #245434; }
+</style>
+</head>
+<body>
+  <h1>Quran Trackers</h1>
+  <a class="card manzil" href="manzil-tracker.html">
+    <h2>Manzil Tracker</h2>
+    <p>Daily manzil / muraja'ah recitation tracker</p>
+  </a>
+  <a class="card murajaah" href="murajaah-tracker.html">
+    <h2>Quran Murajaah Tracker</h2>
+    <p>7-Station spaced repetition system</p>
+  </a>
+</body>
+</html>

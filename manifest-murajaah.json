@@ -1,0 +1,13 @@
+{
+  "name": "Quran Murajaah Tracker",
+  "short_name": "Murajaah",
+  "start_url": "murajaah-tracker.html",
+  "scope": "murajaah-tracker.html",
+  "display": "standalone",
+  "background_color": "#f9f8f3",
+  "theme_color": "#245434",
+  "icons": [
+    { "src": "icon-murajaah-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-murajaah-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -1,0 +1,2626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="manifest-murajaah.json">
+  <meta name="theme-color" content="#245434">
+  <link rel="apple-touch-icon" href="icon-murajaah-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Murajaah">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quran Murajaah Tracker – 7 Station SRS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Tajawal:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:        #f9f8f3;
+    --bg2:       #f0ede2;
+    --bg3:       #e5e1d3;
+    --panel:     #ffffff;
+    --border:    #dcd7c5;
+    --gold:      #a17f26;
+    --gold-dim:  #735a1a;
+    --green:     #245434;
+    --green-lt:  #337549;
+    --green-dim: #e1edd6;
+    --text:      #1b241e;
+    --text-dim:  #526157;
+    --text-muted:#85948a;
+    --red:       #b33e30;
+    --amber:     #b5711b;
+    --teal:      #1e6659;
+    --radius:    10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── Arabesque background ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(36,84,52,0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(161,127,38,0.03) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── SVG pattern overlay ─── */
+  .pattern-overlay {
+    position: fixed;
+    inset: 0;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a17f26' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── Layout ─── */
+  #root { position: relative; z-index: 1; display: flex; min-height: 100vh; }
+
+  /* ─── Sidebar ─── */
+  #sidebar {
+    width: 220px;
+    min-height: 100vh;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar-brand {
+    padding: 28px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-brand .arabic {
+    font-family: 'Tajawal', sans-serif;
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .sidebar-brand .title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .sidebar-brand .subtitle {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  nav { padding: 16px 0; flex: 1; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: all 0.15s ease;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    user-select: none;
+  }
+
+  .nav-item:hover { color: var(--text); background: var(--bg3); }
+
+  .nav-item.active {
+    color: var(--green);
+    border-left-color: var(--green);
+    background: var(--green-dim);
+    font-weight: 600;
+  }
+
+  .nav-item .icon { font-size: 15px; width: 18px; text-align: center; }
+
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ─── Main content ─── */
+  #main {
+    flex: 1;
+    padding: 32px;
+    min-width: 0;
+    overflow-y: auto;
+  }
+
+  /* ─── Page header ─── */
+  .page-header {
+    margin-bottom: 28px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .page-header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.1;
+  }
+
+  .page-header p {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ─── Cards ─── */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .stat-card:hover { border-color: var(--gold-dim); }
+
+  .stat-card .label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .stat-card .value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-card .sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: var(--green-dim);
+    transform: translate(20px, 20px);
+  }
+
+  /* ─── Buttons ─── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .btn-gold {
+    background: var(--gold);
+    color: #ffffff;
+    border-color: var(--gold);
+    font-weight: 500;
+  }
+  .btn-gold:hover { background: #dab85a; }
+
+  .btn-green {
+    background: var(--green);
+    color: #fff;
+    border-color: var(--green);
+  }
+  .btn-green:hover { background: var(--green-lt); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border-color: var(--border);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text-dim); }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--red);
+    border-color: var(--red);
+  }
+  .btn-danger:hover { background: rgba(192,87,74,0.1); }
+
+  /* ─── Table ─── */
+  .data-table { width: 100%; border-collapse: collapse; }
+
+  .data-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+
+  .data-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-dim);
+    vertical-align: middle;
+  }
+
+  .data-table tr:hover td { background: var(--bg3); color: var(--text); }
+  .data-table tr:last-child td { border-bottom: none; }
+
+  /* ─── Badges ─── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 99px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .badge-overdue  { background: rgba(192,87,74,0.15);  color: var(--red);      border: 1px solid rgba(192,87,74,0.3); }
+  .badge-due      { background: rgba(201,136,58,0.15); color: var(--amber);    border: 1px solid rgba(201,136,58,0.3); }
+  .badge-upcoming { background: rgba(61,122,82,0.12);  color: var(--green-lt); border: 1px solid rgba(61,122,82,0.3); }
+  .badge-mature   { background: rgba(201,168,76,0.15); color: var(--gold);     border: 1px solid rgba(201,168,76,0.3); }
+
+  /* ─── Station pill ─── */
+  .station-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--green-dim);
+    color: var(--green-lt);
+    border: 1px solid var(--green);
+  }
+  .station-pill.s7 { background: rgba(201,168,76,0.15); color: var(--gold); border-color: var(--gold-dim); }
+  .station-pill.s1 { background: rgba(192,87,74,0.1); color: #d97b70; border-color: rgba(192,87,74,0.4); }
+
+  /* ─── Station progress bar ─── */
+  .station-bar {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .station-dot {
+    width: 22px; height: 5px;
+    border-radius: 3px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+  .station-dot.filled { background: var(--green); border-color: var(--green); }
+  .station-dot.gold   { background: var(--gold);  border-color: var(--gold); }
+
+  /* ─── Modal ─── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
+
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 480px;
+    padding: 28px;
+    transform: translateY(12px);
+    transition: transform 0.2s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .modal-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 22px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ─── Rating buttons ─── */
+  .rating-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .rating-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 6px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    gap: 6px;
+  }
+
+  .rating-btn:hover { border-color: var(--gold); background: var(--bg3); }
+  .rating-btn.selected { border-color: var(--gold); background: rgba(201,168,76,0.12); }
+
+  .rating-btn .num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1;
+  }
+  .rating-btn .lbl { font-size: 9px; color: var(--text-muted); text-align: center; letter-spacing: 0.05em; line-height: 1.3; }
+
+  /* ─── Form inputs ─── */
+  .form-label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .form-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 16px;
+  }
+
+  .form-input:focus { border-color: var(--green); }
+  .form-input::placeholder { color: var(--text-muted); }
+
+  textarea.form-input { resize: vertical; min-height: 80px; }
+
+  /* ─── Search ─── */
+  .search-wrap { position: relative; }
+  .search-wrap .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
+  .search-wrap input { padding-left: 36px; }
+
+  /* ─── Progress ring ─── */
+  .ring-wrap { position: relative; display: inline-block; }
+  .ring-label {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px; font-weight: 600; color: var(--text);
+  }
+  .ring-label .ring-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ─── Station breakdown ─── */
+  .station-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .station-row:last-child { border-bottom: none; }
+  .station-row .s-label { width: 60px; font-size: 11px; color: var(--text-dim); }
+  .station-row .s-bar-wrap { flex: 1; background: var(--bg3); border-radius: 3px; height: 6px; overflow: hidden; }
+  .station-row .s-bar-fill { height: 100%; border-radius: 3px; background: var(--green); transition: width 0.4s ease; }
+  .station-row .s-count { width: 30px; text-align: right; font-size: 11px; color: var(--text-dim); }
+
+  /* ─── Info accordion ─── */
+  .info-item { border-bottom: 1px solid var(--border); }
+  .info-trigger {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; cursor: pointer; user-select: none;
+    font-size: 12px; color: var(--text-dim);
+  }
+  .info-trigger:hover { color: var(--text); }
+  .info-body { font-size: 12px; color: var(--text-muted); line-height: 1.7; padding-bottom: 12px; display: none; }
+  .info-body.open { display: block; }
+
+  /* ─── Streak badge ─── */
+  .streak-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 99px;
+    padding: 5px 14px;
+    font-size: 12px; color: var(--gold);
+  }
+
+  /* ─── Tabs ─── */
+  .tab-bar {
+    display: flex;
+    gap: 2px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+    margin-bottom: 20px;
+    width: fit-content;
+  }
+
+  .tab-btn {
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .tab-btn.active { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
+
+  /* ─── Empty state ─── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-state p { font-size: 13px; margin-bottom: 6px; color: var(--text-dim); }
+  .empty-state small { font-size: 11px; }
+
+  /* ─── Toast ─── */
+  #toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--panel);
+    border: 1px solid var(--green);
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 12px;
+    color: var(--green-lt);
+    z-index: 999;
+    transform: translateY(60px);
+    opacity: 0;
+    transition: all 0.25s ease;
+    pointer-events: none;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ─── Mobile ─── */
+  .mobile-toggle {
+    display: none;
+    position: fixed;
+    top: 16px; left: 16px;
+    z-index: 200;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 38px; height: 38px;
+    align-items: center; justify-content: center;
+    cursor: pointer; font-size: 16px; color: var(--text);
+  }
+
+  @media (max-width: 768px) {
+    .mobile-toggle { display: flex; }
+    #sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0;
+      z-index: 150;
+      transform: translateX(-100%);
+    }
+    #sidebar.open { transform: translateX(0); }
+    #main { padding: 20px 16px; padding-top: 64px; }
+    .rating-grid { grid-template-columns: repeat(5, 1fr); }
+    .page-header { flex-direction: column; align-items: flex-start; }
+  }
+
+  /* ─── Scrollbar ─── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ─── Animations ─── */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.3s ease forwards; }
+
+  /* ══ ADHD FEATURES ══════════════════════════════════════════════════════ */
+
+  /* Burst Mode overlay */
+  #burst-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(11,20,14,0.97);
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  #burst-overlay.open { opacity: 1; pointer-events: all; }
+
+  #burst-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 420px;
+    padding: 28px 26px 22px;
+    text-align: center;
+    position: relative;
+  }
+
+  .burst-arabic {
+    font-family: 'Tajawal', sans-serif;
+    font-size: 20px;
+    color: var(--gold);
+    margin-bottom: 14px;
+    letter-spacing: 0.04em;
+  }
+
+  #burst-page-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  #burst-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 20px;
+  }
+
+  #burst-time-est {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(36,84,52,0.15);
+    border: 1px solid rgba(36,84,52,0.3);
+    border-radius: 99px;
+    padding: 6px 14px;
+    font-size: 11px;
+    color: var(--green-lt);
+    margin-bottom: 22px;
+  }
+
+  #burst-progress-bar {
+    height: 3px;
+    background: var(--bg3);
+    border-radius: 3px;
+    margin-bottom: 22px;
+    overflow: hidden;
+  }
+  #burst-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--gold));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  .burst-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .burst-btn-done {
+    padding: 14px;
+    border-radius: 10px;
+    border: 2px solid var(--green);
+    background: var(--green);
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.03em;
+  }
+  .burst-btn-done:hover { background: var(--green-lt); border-color: var(--green-lt); }
+
+  .burst-btn-skip {
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.03em;
+  }
+  .burst-btn-skip:hover { border-color: var(--text-muted); color: var(--text); }
+
+  .burst-abort {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    padding: 6px;
+    transition: color 0.15s;
+  }
+  .burst-abort:hover { color: var(--text-dim); }
+
+  #burst-counter {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+    letter-spacing: 0.06em;
+  }
+
+  /* Micro-win flash */
+  @keyframes microWinPulse {
+    0%   { transform: scale(1); opacity: 1; }
+    40%  { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1); opacity: 0; }
+  }
+  #micro-win {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(201,168,76,0.18);
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 99px;
+    padding: 8px 22px;
+    font-size: 13px;
+    color: var(--gold);
+    z-index: 600;
+    pointer-events: none;
+    opacity: 0;
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+  }
+  #micro-win.flash {
+    animation: microWinPulse 1.4s ease forwards;
+  }
+
+  /* Session anchor banner */
+  #session-anchor {
+    display: none;
+    background: linear-gradient(135deg, rgba(36,84,52,0.12), rgba(161,127,38,0.08));
+    border: 1px solid rgba(36,84,52,0.25);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  #session-anchor.visible { display: flex; }
+  #session-anchor .sa-label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+  #session-anchor .sa-val { color: var(--text); font-size: 12px; }
+
+  /* Horizon forecast card */
+  #horizon-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: none;
+  }
+  #horizon-card.visible { display: block; }
+  .horizon-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .horizon-row:last-child { border-bottom: none; }
+  .horizon-day-label { width: 72px; font-size: 11px; color: var(--text-dim); flex-shrink: 0; }
+  .horizon-bar-wrap { flex: 1; background: var(--bg3); border-radius: 3px; height: 6px; overflow: hidden; }
+  .horizon-bar-fill { height: 100%; border-radius: 3px; background: var(--green); transition: width 0.4s; }
+  .horizon-count { width: 36px; text-align: right; font-size: 11px; color: var(--text-dim); }
+  .horizon-est { font-size: 10px; color: var(--text-muted); margin-left: 2px; }
+
+  /* Burst Mode FAB */
+  #burst-fab {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 200;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: var(--green);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(36,84,52,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #fff;
+    transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+  #burst-fab:hover { background: var(--green-lt); transform: scale(1.06); box-shadow: 0 6px 24px rgba(36,84,52,0.5); }
+  #burst-fab.has-due { background: var(--gold); box-shadow: 0 4px 20px rgba(201,168,76,0.4); animation: fabPulse 2.4s ease-in-out infinite; }
+  #burst-fab.has-due:hover { background: #dab85a; }
+  @keyframes fabPulse { 0%,100% { box-shadow: 0 4px 20px rgba(201,168,76,0.35); } 50% { box-shadow: 0 4px 28px rgba(201,168,76,0.65); } }
+  #burst-fab-label { position: absolute; right: 70px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 11px; color: var(--text); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  #burst-fab:hover + #burst-fab-label, #burst-fab:focus + #burst-fab-label { opacity: 1; }
+
+  .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* ─── Due dot ─── */
+  .due-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block; margin-right: 6px;
+  }
+  .due-dot.overdue { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .due-dot.due     { background: var(--amber); }
+  .due-dot.ok      { background: var(--green); }
+
+  /* review card in today view */
+  .review-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: border-color 0.15s;
+    margin-bottom: 10px;
+  }
+  .review-card:hover { border-color: var(--gold-dim); }
+  .review-card .rc-info { flex: 1; min-width: 0; }
+  .review-card .rc-name { font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .review-card .rc-meta { font-size: 10px; color: var(--text-muted); margin-top: 4px; letter-spacing: 0.04em; }
+
+/* ══ GAP RECOVERY MODAL ══ */
+#gap-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+  z-index: 500; display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+#gap-overlay.open { opacity: 1; pointer-events: all; }
+#gap-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 16px; padding: 28px 24px; max-width: 360px; width: 90%;
+}
+#gap-card h3 { color: var(--gold); font-size: 15px; margin: 0 0 6px; }
+#gap-card p  { color: var(--text-dim); font-size: 12px; margin: 0 0 20px; line-height: 1.7; }
+.gap-btn {
+  display: block; width: 100%; margin-bottom: 10px; padding: 12px 16px;
+  border-radius: 10px; border: 1px solid var(--border); background: var(--bg3);
+  color: var(--text); cursor: pointer; text-align: left; font-size: 13px;
+  transition: background 0.15s;
+}
+.gap-btn:hover { background: var(--bg2); }
+.gap-btn strong { display: block; margin-bottom: 2px; }
+.gap-btn span   { font-size: 11px; color: var(--text-muted); }
+.gap-dismiss { font-size: 11px; color: var(--text-muted); background: none;
+  border: none; cursor: pointer; margin-top: 6px; width: 100%; text-align: center; }
+.triage-solid-btn {
+  font-size: 11px; padding: 4px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg3);
+  color: var(--text-muted); cursor: pointer; margin-left: 6px;
+}
+.triage-solid-btn:hover { background: var(--green); color: #fff; border-color: var(--green); }
+</style>
+</head>
+<body>
+
+<div class="pattern-overlay"></div>
+
+<!-- Mobile toggle -->
+<button class="mobile-toggle" onclick="toggleSidebar()" id="mobileToggle">☰</button>
+
+<div id="root">
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <div class="sidebar-brand">
+      <span class="arabic">مراجعة القرآن</span>
+      <div class="title">Quran Murajaah Tracker</div>
+      <div class="subtitle">7 Station SRS</div>
+    </div>
+
+    <nav>
+      <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+        <span class="icon">⬡</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('today')" id="nav-today">
+        <span class="icon">◈</span> Today's Reviews
+        <span id="due-badge" style="margin-left:auto;background:var(--red);color:#fff;border-radius:99px;padding:1px 7px;font-size:10px;display:none"></span>
+      </div>
+      <div class="nav-item" onclick="showPage('allpages')" id="nav-allpages">
+        <span class="icon">◫</span> All Pages
+      </div>
+      <div class="nav-item" onclick="showPage('add')" id="nav-add">
+        <span class="icon">⊕</span> Add New
+      </div>
+      <div class="nav-item" onclick="showPage('stats')" id="nav-stats">
+        <span class="icon">◎</span> Statistics
+      </div>
+      <div class="nav-item" onclick="showPage('help')" id="nav-help">
+        <span class="icon">◌</span> Help & Guide
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div style="margin-bottom:10px;">
+        <button class="btn btn-ghost" style="width:100%;justify-content:center;font-size:11px;padding:6px 10px" onclick="exportData()">↑ Export JSON</button>
+      </div>
+      <div>
+        <label class="btn btn-ghost" style="width:100%;justify-content:center;font-size:11px;padding:6px 10px;cursor:pointer">
+          ↓ Import JSON
+          <input type="file" accept=".json" style="display:none" onchange="importData(event)" />
+        </label>
+      </div>
+      <div style="margin-top:10px;font-size:10px;min-height:14px">
+        <span id="sync-status-m" style="color:var(--text-muted)"></span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main id="main">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div id="page-dashboard" class="fade-in">
+      <div class="page-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p id="today-date-label"></p>
+        </div>
+        <div id="streak-display"></div>
+      </div>
+
+      <div class="grid-stats" id="stat-cards"></div>
+
+      <!-- ── Quran Completion Progress ── -->
+      <div class="card" style="margin-bottom:28px" id="quran-progress-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Quran Completion</div>
+            <div id="qp-subtitle" style="font-size:11px;color:var(--text-dim);margin-top:3px"></div>
+          </div>
+          <div id="qp-pct-label" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:var(--text);line-height:1"></div>
+        </div>
+
+        <!-- Main bar -->
+        <div style="position:relative;height:14px;background:var(--bg3);border-radius:99px;border:1px solid var(--border);overflow:hidden;margin-bottom:10px">
+          <!-- Base (pre-tracker) segment -->
+          <div id="qp-bar-base" style="position:absolute;left:0;top:0;height:100%;background:var(--green-dim);border-radius:99px 0 0 99px;transition:width .6s ease"></div>
+          <!-- Tracker segment -->
+          <div id="qp-bar-tracker" style="position:absolute;top:0;height:100%;background:linear-gradient(90deg,var(--green),var(--green-lt));border-radius:0 99px 99px 0;transition:width .6s ease,left .6s ease"></div>
+          <!-- Goal marker at 100% (right edge visual) -->
+        </div>
+
+        <!-- Legend & markers -->
+        <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:10px;height:10px;border-radius:2px;background:var(--green-dim);border:1px solid var(--green)"></div>
+            <span style="font-size:10px;color:var(--text-muted)" id="qp-base-label">Pre-tracker (104 pages)</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:10px;height:10px;border-radius:2px;background:var(--green)"></div>
+            <span style="font-size:10px;color:var(--text-muted)" id="qp-tracker-label">This tracker (0 pages)</span>
+          </div>
+          <div style="margin-left:auto;font-size:10px;color:var(--text-muted)" id="qp-remaining-label"></div>
+        </div>
+
+        <!-- Milestone pips -->
+        <div id="qp-milestones" style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px">Due This Week</div>
+          <div id="due-week-list">
+            <div class="empty-state" style="padding:20px">
+              <p>No upcoming reviews</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px">Recently Added</div>
+          <div id="recent-list">
+            <div class="empty-state" style="padding:20px"><p>No pages yet</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TODAY'S REVIEWS ══ -->
+    <div id="page-today" class="fade-in" style="display:none">
+      <div class="page-header">
+        <div>
+          <h1>Today's Reviews</h1>
+          <p id="today-time-estimate">Pages due for review today or overdue</p>
+        </div>
+        <button class="btn btn-gold" onclick="startBurstMode()" style="gap:8px">⚡ Burst Mode</button>
+      </div>
+
+      <!-- Session anchor banner -->
+      <div id="session-anchor">
+        <div>
+          <div class="sa-label">Last session</div>
+          <div class="sa-val" id="sa-detail">—</div>
+        </div>
+        <button class="btn btn-ghost" style="font-size:11px;padding:5px 12px" onclick="startBurstMode()">Continue →</button>
+      </div>
+
+      <!-- 3-day horizon card -->
+      <div id="horizon-card">
+        <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Upcoming Load</div>
+        <div id="horizon-rows"></div>
+      </div>
+
+      <div id="today-list"></div>
+    </div>
+
+    <!-- ══ ALL PAGES ══ -->
+    <div id="page-allpages" class="fade-in" style="display:none">
+      <div class="page-header">
+        <div>
+          <h1>All Pages</h1>
+          <p>Your complete collection</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div class="search-wrap">
+            <span class="icon">⊘</span>
+            <input type="text" class="form-input search-wrap" id="search-input" placeholder="Search pages..." oninput="renderAllPages()" style="margin-bottom:0;width:200px;padding-left:32px" />
+          </div>
+          <div class="tab-bar" id="filter-tabs">
+            <button class="tab-btn active" onclick="setFilter('all',this)">All</button>
+            <button class="tab-btn" onclick="setFilter('overdue',this)">Overdue</button>
+            <button class="tab-btn" onclick="setFilter('due',this)">Due</button>
+            <button class="tab-btn" onclick="setFilter('mature',this)">Mature</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="overflow:auto">
+        <table class="data-table" id="all-table">
+          <thead>
+            <tr>
+              <th>Page Name</th>
+              <th>Station</th>
+              <th>Progress</th>
+              <th>Last Reviewed</th>
+              <th>Next Due</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="all-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ ADD NEW ══ -->
+    <div id="page-add" class="fade-in" style="display:none">
+      <div class="page-header">
+        <div>
+          <h1>Add New Page</h1>
+          <p>Begin tracking a new portion at Station 1</p>
+        </div>
+      </div>
+
+      <div class="card" style="max-width:500px">
+        <label class="form-label">Page / Section Name *</label>
+        <input type="text" class="form-input" id="add-name" placeholder="e.g. Page 42 – Juz 2 – Al-Baqarah" oninput="autoDetectPageCount()" />
+
+        <label class="form-label">Juz (optional)</label>
+        <input type="text" class="form-input" id="add-juz" placeholder="e.g. Juz 2" oninput="autoDetectPageCount()" />
+
+        <label class="form-label">Surah (optional)</label>
+        <input type="text" class="form-input" id="add-surah" placeholder="e.g. Al-Baqarah" />
+
+        <label class="form-label">Page Count <span style="color:var(--text-muted);font-weight:400">(how many pages this entry covers)</span></label>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px">
+          <input type="number" class="form-input" id="add-pagecount" value="1" min="1" max="604" style="margin-bottom:0;width:90px" />
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost" style="padding:5px 12px;font-size:11px" onclick="setPageCount(1)">1 page</button>
+            <button class="btn btn-ghost" style="padding:5px 12px;font-size:11px" onclick="setPageCount(20)">1 juz (20)</button>
+            <button class="btn btn-ghost" style="padding:5px 12px;font-size:11px" onclick="setPageCount(10)">½ juz (10)</button>
+          </div>
+        </div>
+
+        <label class="form-label">Notes / Weak Points</label>
+        <textarea class="form-input" id="add-notes" placeholder="Any difficult ayahs or tajweed notes..."></textarea>
+
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btn btn-gold" onclick="addPage()">⊕ Add to Tracker</button>
+          <button class="btn btn-ghost" onclick="clearAddForm()">Clear</button>
+        </div>
+
+        <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);line-height:1.8">
+          New pages start at <strong style="color:var(--text)">Station 1</strong> and are due for review today.<br />
+          Work through all 7 stations to graduate a page to Maintenance.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STATISTICS ══ -->
+    <div id="page-stats" class="fade-in" style="display:none">
+      <div class="page-header">
+        <div>
+          <h1>Statistics</h1>
+          <p>Your progress at a glance</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card">
+          <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">Station Breakdown</div>
+          <div id="station-breakdown"></div>
+        </div>
+
+        <div class="card">
+          <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">Overall Maturity</div>
+          <div style="display:flex;flex-direction:column;align-items:center;padding:10px 0">
+            <svg width="140" height="140" viewBox="0 0 140 140" id="maturity-ring">
+              <circle cx="70" cy="70" r="58" fill="none" stroke="var(--bg3)" stroke-width="10"/>
+              <circle cx="70" cy="70" r="58" fill="none" stroke="var(--green)" stroke-width="10"
+                stroke-dasharray="364.4"
+                stroke-dashoffset="364.4"
+                stroke-linecap="round"
+                transform="rotate(-90 70 70)"
+                id="maturity-arc"/>
+            </svg>
+            <div style="margin-top:-110px;text-align:center;margin-bottom:80px">
+              <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--text)" id="maturity-pct">0%</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Station 5–7</div>
+            </div>
+          </div>
+          <div id="maturity-summary" style="font-size:12px;color:var(--text-dim);line-height:1.8;text-align:center"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px">Review History (Last 14 Days)</div>
+        <div id="review-heatmap" style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end"></div>
+      </div>
+    </div>
+
+    <!-- ══ HELP ══ -->
+    <div id="page-help" class="fade-in" style="display:none">
+      <div class="page-header">
+        <div>
+          <h1>Guide & 7 Stations</h1>
+          <p>How the spaced repetition system works</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card">
+          <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">The 7 Stations</div>
+          <div id="station-guide"></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div class="card">
+            <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">Rating Guide</div>
+            <div style="font-size:12px;color:var(--text-dim);line-height:1.9">
+              <div style="margin-bottom:10px"><span style="color:var(--green-lt);font-weight:500">5 — Perfect / Easy</span><br/>Recited flawlessly, no hesitation → advance 1 station</div>
+              <div style="margin-bottom:10px"><span style="color:var(--teal);font-weight:500">4 — Good with minor slips</span><br/>Mostly confident, small mistakes → advance 1 station</div>
+              <div style="margin-bottom:10px"><span style="color:var(--amber);font-weight:500">3 — Okay</span><br/>Managed but took effort → stay at same station</div>
+              <div style="margin-bottom:10px"><span style="color:var(--amber);font-weight:500">2 — Struggled</span><br/>Multiple gaps, needed prompting → drop 1 station</div>
+              <div><span style="color:var(--red);font-weight:500">1 — Major forgetting</span><br/>Could not recall most of it → drop 2 stations (min Station 1)</div>
+            </div>
+          </div>
+
+          <div class="card" style="border-color:rgba(201,136,58,0.25)">
+            <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:16px">🌡 Hot Layer (First 20 Days)</div>
+            <div id="hot-layer-info"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px">FAQ</div>
+        <div id="faq-list"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══ REVIEW MODAL ══ -->
+<div class="modal-overlay" id="review-modal">
+  <div class="modal">
+    <!-- Hot layer banner -->
+    <div id="rm-hotlayer-banner" style="display:none;background:rgba(201,136,58,0.12);border:1px solid rgba(201,136,58,0.3);border-radius:8px;padding:8px 14px;margin-bottom:16px;font-size:11px;color:var(--amber);letter-spacing:0.04em">
+      🌡 Hot Layer Review — does not advance station
+    </div>
+
+    <div class="modal-title" id="rm-title">Page Name</div>
+    <div class="modal-sub" id="rm-meta">Station 1 · Review</div>
+
+    <!-- Rep progress -->
+    <div id="rm-rep-wrap" style="margin-bottom:14px;padding:10px 14px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:12px">
+      <div id="rm-rep-dots" style="display:flex;gap:5px"></div>
+      <div>
+        <div id="rm-rep-label" style="font-size:11px;color:var(--text)">Rep 0 / 5</div>
+        <div id="rm-rep-hint" style="font-size:10px;color:var(--text-muted);margin-top:2px"></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px" id="rm-notes-wrap">
+      <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Notes / Weak Points</div>
+      <div id="rm-notes" style="font-size:12px;color:var(--text-dim);line-height:1.7;background:var(--bg3);padding:10px 12px;border-radius:6px;border:1px solid var(--border)"></div>
+    </div>
+
+    <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">How did the review go?</div>
+    <div class="rating-grid" id="rm-ratings">
+      <div class="rating-btn" onclick="selectRating(1)"><span class="num">1</span><span class="lbl">Major forget</span></div>
+      <div class="rating-btn" onclick="selectRating(2)"><span class="num">2</span><span class="lbl">Struggled</span></div>
+      <div class="rating-btn" onclick="selectRating(3)"><span class="num">3</span><span class="lbl">Okay</span></div>
+      <div class="rating-btn" onclick="selectRating(4)"><span class="num">4</span><span class="lbl">Good</span></div>
+      <div class="rating-btn" onclick="selectRating(5)"><span class="num">5</span><span class="lbl">Perfect</span></div>
+    </div>
+
+    <label class="form-label" style="margin-top:4px">Add / Update Notes</label>
+    <textarea class="form-input" id="rm-notes-input" placeholder="Update any weak ayahs, mistakes, observations..."></textarea>
+
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn btn-gold" id="rm-submit" onclick="submitReview()" disabled>✓ Submit Review</button>
+      <button class="btn btn-ghost" onclick="closeModal('review-modal')">Cancel</button>
+      <button class="btn btn-danger" style="margin-left:auto" onclick="deletePage()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EDIT MODAL ══ -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">Edit Page</div>
+    <div class="modal-sub">Update page details</div>
+    <input type="hidden" id="edit-id" />
+    <label class="form-label">Name</label>
+    <input type="text" class="form-input" id="edit-name" />
+    <label class="form-label">Notes</label>
+    <textarea class="form-input" id="edit-notes"></textarea>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-gold" onclick="saveEdit()">Save</button>
+      <button class="btn btn-ghost" onclick="closeModal('edit-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- ══ BURST MODE OVERLAY ══ -->
+<div id="burst-overlay">
+  <div id="burst-card">
+    <div class="burst-arabic">بِسْمِ اللهِ</div>
+    <div id="burst-counter">Page 1 of 4</div>
+    <div id="burst-progress-bar"><div id="burst-progress-fill" style="width:0%"></div></div>
+    <div id="burst-page-name">Page Name</div>
+    <div id="burst-meta">Juz 1 · Station 2</div>
+    <div id="burst-time-est">⏱ ~2 min · this page</div>
+    <div class="burst-actions">
+      <button class="burst-btn-done" onclick="burstDone()">✓ Done</button>
+      <button class="burst-btn-skip" onclick="burstSkip()">→ Skip for now</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <button class="burst-abort" onclick="burstAbort()">⊠ End session early</button>
+      <button class="burst-abort" onclick="burstOpenFull()" style="color:var(--gold-dim)">Open full review ↗</button>
+    </div>
+  </div>
+</div>
+
+<!-- Micro-win flash -->
+<div id="micro-win">✦ 0 done today</div>
+
+<!-- Burst FAB -->
+<button id="burst-fab" onclick="startBurstMode()" title="Start Burst Mode">⚡</button>
+<div id="burst-fab-label">Start Burst Mode</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  DATA MODEL & STORAGE
+// ══════════════════════════════════════════════════
+
+const STORAGE_KEY = 'qmurajaah_v2';
+
+// Quran completion goal
+const BASE_PAGES  = 104;   // pages already memorised before using this tracker
+const GOAL_PAGES  = 604;   // 100% target — full Quran (104 pre-tracker + 500 remaining)
+
+// Station intervals (days after review)
+const STATION_INTERVALS = { 1: 0, 2: 1, 3: 4, 4: 11, 5: 25, 6: 55, 7: 90 };
+
+// Required repetitions per station (minimum to advance)
+// S1 & S2: target is 5× but min 2 is acceptable
+const REP_REQUIREMENTS = { 1:2, 2:2, 3:3, 4:3, 5:2, 6:2, 7:1 };
+const REP_TARGETS      = { 1:5, 2:5, 3:3, 4:3, 5:2, 6:2, 7:1 };
+
+// Extra Hot Layer days (Day offset from dateAdded) — first 20 days only
+const HOT_LAYER_DAYS = [3, 8, 13];
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { pages: [], reviewLog: [] }; }
+  catch { return { pages: [], reviewLog: [] }; }
+}
+
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  scheduleSyncDebounced_M(data);
+}
+
+/* ── Google Sheets Sync Bridge ─────────────────────────────────────────── */
+const SYNC_ENDPOINT_M = 'https://script.google.com/macros/s/AKfycbzrQZyHiCFhi6zoTsWeuopbwFEJdiJONOjoh4Co5BHUXfv1sFkF1YDCSqJfZCtWddF46g/exec';
+
+let _syncTimerM = null;
+function scheduleSyncDebounced_M(data) {
+  if (!SYNC_ENDPOINT_M) return;
+  clearTimeout(_syncTimerM);
+  _syncTimerM = setTimeout(() => pushToSheets_M(data), 2000);
+}
+
+async function pushToSheets_M(data) {
+  if (!SYNC_ENDPOINT_M) return;
+  const body = JSON.stringify({ source: 'murajaah', payload: data });
+  try {
+    setSyncStatus_M('syncing');
+    // no-cors mode required when opening from file:// — response is opaque but data arrives
+    await fetch(SYNC_ENDPOINT_M, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: body
+    });
+    setSyncStatus_M('ok');
+  } catch (e) {
+    setSyncStatus_M('error', e.message);
+  }
+}
+
+function setSyncStatus_M(state, msg) {
+  const el = document.getElementById('sync-status-m');
+  if (!el) return;
+  const map = {
+    syncing: { text: '⟳ Syncing to Sheets…', color: 'var(--text-dim)' },
+    ok:      { text: '✓ Synced to Sheets',   color: 'var(--green-lt)' },
+    error:   { text: '✕ Sync error',          color: 'var(--red)' }
+  };
+  const s = map[state] || map.error;
+  el.textContent = s.text + (msg ? ' — ' + msg : '');
+  el.style.color = s.color;
+}
+
+function getData() { return loadData(); }
+
+// ══════════════════════════════════════════════════
+//  DATE HELPERS
+// ══════════════════════════════════════════════════
+
+function today() { return new Date().toISOString().slice(0,10); }
+
+function addDays(dateStr, days) {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0,10);
+}
+
+function daysDiff(a, b) {
+  const da = new Date(a + 'T00:00:00');
+  const db = new Date(b + 'T00:00:00');
+  return Math.round((db - da) / 86400000);
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function getStatus(page) {
+  const t = today();
+  if (page.currentStation === 7) return 'mature';
+  if (!page.nextDueDate || page.nextDueDate < t) return 'overdue';
+  if (page.nextDueDate === t) return 'due';
+  return 'upcoming';
+}
+
+// ══════════════════════════════════════════════════
+//  SPACED REPETITION LOGIC
+// ══════════════════════════════════════════════════
+
+function calcNextStation(current, rating) {
+  if (rating >= 4) return Math.min(7, current + 1);
+  if (rating === 3) return current;
+  if (rating === 2) return Math.max(1, current - 1);
+  return Math.max(1, current - 2);
+}
+
+function calcNextDue(station, fromDate) {
+  const interval = STATION_INTERVALS[station] || 90;
+  if (interval === 0) return fromDate; // same day
+  return addDays(fromDate, interval);
+}
+
+function reviewPage(id, rating, notes) {
+  const data = getData();
+  const page = data.pages.find(p => p.id === id);
+  if (!page) return;
+
+  const t = today();
+  const reps = (page.stationReps || 0) + 1;
+  const minReps = REP_REQUIREMENTS[page.currentStation] || 1;
+
+  if (!page.ratingHistory) page.ratingHistory = [];
+  page.ratingHistory.push({ date: t, rating, station: page.currentStation, rep: reps });
+  if (notes !== undefined && notes.trim()) page.notes = notes.trim();
+
+  if (!data.reviewLog) data.reviewLog = [];
+  if (!data.reviewLog.includes(t)) data.reviewLog.push(t);
+
+  if (reps < minReps) {
+    // Not enough reps yet — stay at same station, remain due today
+    page.stationReps = reps;
+    page.lastReviewed = t;
+    page.nextDueDate = t;
+    saveData(data);
+    const target = REP_TARGETS[page.currentStation] || minReps;
+    showToast(`Rep ${reps}/${target} · ${minReps - reps} more to advance (min ${minReps})`);
+  } else {
+    // Enough reps — advance station based on rating
+    const newStation = calcNextStation(page.currentStation, rating);
+    const newDue = calcNextDue(newStation, t);
+    page.currentStation = newStation;
+    page.lastReviewed = t;
+    page.nextDueDate = newDue;
+    page.stationReps = 0; // reset rep counter for new station
+    saveData(data);
+    showToast(`Reviewed → Station ${newStation} · Next due ${formatDate(newDue)}`);
+  }
+}
+
+function hotLayerReviewPage(id, rating, notes) {
+  const data = getData();
+  const page = data.pages.find(p => p.id === id);
+  if (!page) return;
+
+  const t = today();
+  const dayOffset = daysDiff(page.dateAdded, t);
+
+  if (!page.hotLayerDone) page.hotLayerDone = [];
+  if (!page.hotLayerDone.includes(dayOffset)) page.hotLayerDone.push(dayOffset);
+
+  if (!page.ratingHistory) page.ratingHistory = [];
+  page.ratingHistory.push({ date: t, rating, station: page.currentStation, hotLayer: true });
+
+  if (notes !== undefined && notes.trim()) page.notes = notes.trim();
+
+  if (!data.reviewLog) data.reviewLog = [];
+  if (!data.reviewLog.includes(t)) data.reviewLog.push(t);
+
+  saveData(data);
+  showToast(`Hot layer logged (Day ${dayOffset}) · Station ${page.currentStation} unchanged`);
+}
+
+function getHotLayerDue(page) {
+  const t = today();
+  if (!page.dateAdded) return null;
+  const dayOffset = daysDiff(page.dateAdded, t);
+  if (dayOffset < 0 || dayOffset > 19) return null;
+  if (!HOT_LAYER_DAYS.includes(dayOffset)) return null;
+  if ((page.hotLayerDone || []).includes(dayOffset)) return null;
+  return dayOffset;
+}
+
+function addPage() {
+  const name  = document.getElementById('add-name').value.trim();
+  if (!name) { showToast('Please enter a page name.'); return; }
+  const juz   = document.getElementById('add-juz').value.trim();
+  const surah = document.getElementById('add-surah').value.trim();
+  const notes = document.getElementById('add-notes').value.trim();
+  const rawCount = parseInt(document.getElementById('add-pagecount').value, 10);
+  const pageCount = (!isNaN(rawCount) && rawCount > 0) ? rawCount : 1;
+
+  const data = getData();
+  const t = today();
+  const page = {
+    id: Date.now().toString(),
+    name, juz, surah, notes,
+    pageCount,
+    dateAdded: t,
+    currentStation: 1,
+    lastReviewed: null,
+    nextDueDate: t,
+    ratingHistory: [],
+    stationReps: 0,
+    hotLayerDone: []
+  };
+  data.pages.unshift(page);
+  saveData(data);
+  clearAddForm();
+  showToast('Page added → due for review today!');
+  showPage('today');
+}
+
+function deletePage() {
+  const id = window._reviewingId;
+  if (!id) return;
+  if (!confirm('Delete this page permanently?')) return;
+  const data = getData();
+  data.pages = data.pages.filter(p => p.id !== id);
+  saveData(data);
+  closeModal('review-modal');
+  renderCurrentPage();
+  showToast('Page deleted.');
+}
+
+// ══════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════
+
+let currentPage = 'dashboard';
+let currentFilter = 'all';
+
+function showPage(page) {
+  document.querySelectorAll('[id^="page-"]').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + page).style.display = 'block';
+  document.getElementById('nav-' + page).classList.add('active');
+  currentPage = page;
+
+  // Re-animate
+  const el = document.getElementById('page-' + page);
+  el.classList.remove('fade-in');
+  void el.offsetWidth;
+  el.classList.add('fade-in');
+
+  renderCurrentPage();
+  updateDueBadge();
+
+  // Close sidebar on mobile
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.remove('open');
+  }
+}
+
+function renderCurrentPage() {
+  if (currentPage === 'dashboard')  renderDashboard();
+  if (currentPage === 'today')      renderToday();
+  if (currentPage === 'allpages')   renderAllPages();
+  if (currentPage === 'stats')      renderStats();
+  if (currentPage === 'help')       renderHelp();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════════
+
+function renderDashboard() {
+  const data = getData();
+  const t = today();
+
+  // Date label
+  document.getElementById('today-date-label').textContent =
+    new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  // Streak
+  const streak = calcStreak(data.reviewLog || []);
+  document.getElementById('streak-display').innerHTML = streak > 0
+    ? `<div class="streak-badge">🔥 ${streak} day streak</div>` : '';
+
+  const pages = data.pages;
+  const overdue = pages.filter(p => getStatus(p) === 'overdue').length;
+  const due = pages.filter(p => getStatus(p) === 'due').length;
+  const mature = pages.filter(p => p.currentStation === 7).length;
+
+  document.getElementById('stat-cards').innerHTML = `
+    <div class="stat-card">
+      <div class="label">Total Pages</div>
+      <div class="value">${pages.length}</div>
+      <div class="sub">in tracker</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Due Today</div>
+      <div class="value" style="color:${(overdue+due)>0?'var(--amber)':'var(--text)'}">${overdue + due}</div>
+      <div class="sub">${overdue} overdue · ${due} due</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Mature (S7)</div>
+      <div class="value" style="color:var(--gold)">${mature}</div>
+      <div class="sub">maintenance only</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Review Streak</div>
+      <div class="value" style="color:var(--green-lt)">${streak}</div>
+      <div class="sub">consecutive days</div>
+    </div>
+  `;
+
+  // Due this week
+  const weekDue = pages
+    .filter(p => {
+      if (!p.nextDueDate) return false;
+      const diff = daysDiff(t, p.nextDueDate);
+      return diff >= 0 && diff <= 7;
+    })
+    .sort((a,b) => a.nextDueDate.localeCompare(b.nextDueDate))
+    .slice(0,5);
+
+  document.getElementById('due-week-list').innerHTML = weekDue.length === 0
+    ? `<div class="empty-state" style="padding:20px"><p>No reviews due this week</p><small>You're all caught up!</small></div>`
+    : weekDue.map(p => `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span class="due-dot ${getStatus(p) === 'overdue' ? 'overdue' : getStatus(p) === 'due' ? 'due' : 'ok'}"></span>
+          <span style="flex:1;font-size:12px;color:var(--text)">${p.name}</span>
+          <span style="font-size:10px;color:var(--text-muted)">${formatDate(p.nextDueDate)}</span>
+        </div>
+      `).join('');
+
+  // Recently added
+  const recent = [...pages].slice(0,5);
+  document.getElementById('recent-list').innerHTML = recent.length === 0
+    ? `<div class="empty-state" style="padding:20px"><p>No pages yet</p><small>Add your first page!</small></div>`
+    : recent.map(p => `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div class="station-pill ${p.currentStation===7?'s7':p.currentStation===1?'s1':''}">${p.currentStation}</div>
+          <span style="flex:1;font-size:12px;color:var(--text)">${p.name}</span>
+          <span style="font-size:10px;color:var(--text-muted)">${formatDate(p.dateAdded)}</span>
+        </div>
+      `).join('');
+
+  renderQuranProgress();
+}
+
+function getPageCount(p) {
+  if (p.pageCount && p.pageCount > 0) return p.pageCount;
+  // Infer from name / juz field for legacy entries without stored pageCount
+  const haystack = ((p.name || '') + ' ' + (p.juz || '')).toLowerCase();
+  if (haystack.includes('juz')) return 20;
+  return 1;
+}
+
+function renderQuranProgress() {
+  const data = getData();
+  const trackerPages = data.pages.reduce((sum, p) => sum + getPageCount(p), 0);
+  const totalPages   = BASE_PAGES + trackerPages;
+  const pct          = Math.min(100, Math.round(totalPages / GOAL_PAGES * 100));
+  const basePct      = Math.min(100, Math.round(BASE_PAGES / GOAL_PAGES * 100));
+  const trackerPct   = Math.min(100 - basePct, Math.round(trackerPages / GOAL_PAGES * 100));
+  const remaining    = Math.max(0, GOAL_PAGES - totalPages);
+
+  // Percentage label
+  document.getElementById('qp-pct-label').textContent = pct + '%';
+
+  // Subtitle
+  document.getElementById('qp-subtitle').textContent =
+    `${totalPages} of ${GOAL_PAGES} pages · ${trackerPages} logged in tracker`;
+
+  // Bars
+  document.getElementById('qp-bar-base').style.width = basePct + '%';
+  const trackerBar = document.getElementById('qp-bar-tracker');
+  trackerBar.style.left  = basePct + '%';
+  trackerBar.style.width = trackerPct + '%';
+
+  // Legend labels
+  document.getElementById('qp-base-label').textContent    = `Pre-tracker (${BASE_PAGES} pages)`;
+  document.getElementById('qp-tracker-label').textContent = `This tracker (${trackerPages} page${trackerPages !== 1 ? 's' : ''})`;
+  document.getElementById('qp-remaining-label').textContent = remaining > 0
+    ? `${remaining} pages to go`
+    : '🎉 Goal reached!';
+
+  // Milestones: juz milestones (every 20 pages = 1 juz, 30 juz total → 604 pages)
+  const milestones = [
+    { pages: 100,  label: 'Juz 5'        },
+    { pages: 200,  label: 'Juz 10'       },
+    { pages: 300,  label: 'Juz 15'       },
+    { pages: 400,  label: 'Juz 20'       },
+    { pages: 500,  label: 'Juz 25'       },
+    { pages: 604,  label: 'Juz 30 / Goal'},
+  ];
+  document.getElementById('qp-milestones').innerHTML = milestones.map(m => {
+    const reached = totalPages >= m.pages;
+    const isGoal  = m.pages >= GOAL_PAGES;
+    return `
+      <div style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;
+        background:${reached ? (isGoal ? 'rgba(201,168,76,0.15)' : 'rgba(61,122,82,0.15)') : 'var(--bg3)'};
+        border:1px solid ${reached ? (isGoal ? 'var(--gold-dim)' : 'var(--green)') : 'var(--border)'};
+        transition:all .3s">
+        <span style="font-size:11px">${reached ? (isGoal ? '★' : '✓') : '○'}</span>
+        <span style="font-size:10px;color:${reached ? (isGoal ? 'var(--gold)' : 'var(--green-lt)') : 'var(--text-muted)'}">${m.label}</span>
+        <span style="font-size:9px;color:var(--text-muted)">${m.pages}p</span>
+      </div>`;
+  }).join('');
+}
+
+function setPageCount(n) {
+  document.getElementById('add-pagecount').value = n;
+}
+
+function autoDetectPageCount() {
+  const juzVal  = (document.getElementById('add-juz').value  || '').toLowerCase();
+  const nameVal = (document.getElementById('add-name').value || '').toLowerCase();
+  const current = parseInt(document.getElementById('add-pagecount').value, 10);
+  // Only auto-set if user hasn't manually changed from 1
+  if (current !== 1 && current !== 20 && current !== 10) return;
+  if (juzVal.includes('juz') || nameVal.includes('juz')) {
+    document.getElementById('add-pagecount').value = 20;
+  }
+}
+
+function calcStreak(reviewLog) {
+  if (!reviewLog || reviewLog.length === 0) return 0;
+  const t = today();
+  let streak = 0;
+  let check = reviewLog.includes(t) ? t : addDays(t, -1);
+  while (reviewLog.includes(check)) {
+    streak++;
+    check = addDays(check, -1);
+  }
+  return streak;
+}
+
+// ══════════════════════════════════════════════════
+//  TODAY'S REVIEWS
+// ══════════════════════════════════════════════════
+
+function renderToday() {
+  // ADHD features
+  updateTodayEstimate();
+  renderSessionAnchor();
+  renderHorizon();
+
+  const data = getData();
+  const due = data.pages.filter(p => {
+    const s = getStatus(p);
+    return s === 'due' || s === 'overdue';
+  }).sort((a,b) => {
+    if (!a.nextDueDate) return -1;
+    return a.nextDueDate.localeCompare(b.nextDueDate);
+  });
+
+  const hotLayerItems = data.pages
+    .filter(p => getHotLayerDue(p) !== null)
+    .sort((a,b) => a.name.localeCompare(b.name));
+
+  const el = document.getElementById('today-list');
+
+  if (due.length === 0 && hotLayerItems.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">✦</div>
+        <p>All caught up!</p>
+        <small>No reviews due today. JazakAllah khayran.</small>
+      </div>`;
+    return;
+  }
+
+  let html = '';
+
+  if (due.length > 0) {
+    html += `<div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">Station Reviews</div>`;
+    html += due.map(p => {
+      const s = getStatus(p);
+      const reps = p.stationReps || 0;
+      const minReps = REP_REQUIREMENTS[p.currentStation] || 1;
+      const target = REP_TARGETS[p.currentStation] || 1;
+      const repLabel = target > 1
+        ? `<span style="color:var(--gold);margin-left:6px;font-size:10px">Rep ${reps}/${target}${p.currentStation<=2?' (min '+minReps+')':''}</span>`
+        : '';
+      return `
+        <div class="review-card">
+          <div class="station-pill ${p.currentStation===7?'s7':p.currentStation===1?'s1':''}">${p.currentStation}</div>
+          <div class="rc-info">
+            <div class="rc-name">${p.name}${repLabel}</div>
+            <div class="rc-meta">
+              ${p.juz ? p.juz + ' · ' : ''}${p.surah ? p.surah + ' · ' : ''}
+              Due: ${formatDate(p.nextDueDate)}
+              ${s === 'overdue' ? ' · <span style="color:var(--red)">OVERDUE</span>' : ''}
+            </div>
+          </div>
+          <span class="${s==='overdue'?'badge badge-overdue':'badge badge-due'}">${s}</span>
+          <button class="btn btn-gold" onclick="openReview('${p.id}', false)">Review</button>
+          ${localStorage.getItem('triage_mode') === today() && s === 'overdue'
+            ? `<button class="triage-solid-btn" onclick="triageSolid('${p.id}')">Solid ✓</button>`
+            : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  if (hotLayerItems.length > 0) {
+    html += `<div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-top:${due.length?'22px':'0'};margin-bottom:10px">🌡 Hot Layer Reviews <span style="color:var(--text-muted);font-size:9px;text-transform:none;letter-spacing:0">(extra reinforcement · does not advance station)</span></div>`;
+    html += hotLayerItems.map(p => {
+      const dayOffset = getHotLayerDue(p);
+      return `
+        <div class="review-card" style="border-color:rgba(201,136,58,0.3)">
+          <div class="station-pill ${p.currentStation===7?'s7':p.currentStation===1?'s1':''}">${p.currentStation}</div>
+          <div class="rc-info">
+            <div class="rc-name">${p.name} <span style="color:var(--amber);font-size:10px">Day ${dayOffset}</span></div>
+            <div class="rc-meta">${p.juz ? p.juz + ' · ' : ''}${p.surah ? p.surah + ' · ' : ''}Hot layer — 2-3 reps light review</div>
+          </div>
+          <span class="badge" style="background:rgba(201,136,58,0.15);color:var(--amber);border:1px solid rgba(201,136,58,0.3)">hot layer</span>
+          <button class="btn" style="background:var(--amber);color:#ffffff;border-color:var(--amber)" onclick="openReview('${p.id}', true)">Review</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+//  ALL PAGES
+// ══════════════════════════════════════════════════
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('#filter-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderAllPages();
+}
+
+function renderAllPages() {
+  const data = getData();
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  let pages = data.pages;
+
+  if (q) pages = pages.filter(p => p.name.toLowerCase().includes(q) || (p.juz||'').toLowerCase().includes(q) || (p.surah||'').toLowerCase().includes(q));
+  if (currentFilter !== 'all') pages = pages.filter(p => getStatus(p) === currentFilter);
+
+  const tbody = document.getElementById('all-tbody');
+  if (pages.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state" style="padding:40px"><p>No pages found</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = pages.map(p => {
+    const s = getStatus(p);
+    const dots = Array.from({length:7}, (_,i) => `
+      <div class="station-dot ${i < p.currentStation ? (p.currentStation===7?'gold':'filled') : ''}"></div>
+    `).join('');
+    const badgeClass = s==='overdue'?'badge-overdue':s==='due'?'badge-due':s==='mature'?'badge-mature':'badge-upcoming';
+    const reps = p.stationReps || 0;
+    const target = REP_TARGETS[p.currentStation] || 1;
+    const minReps = REP_REQUIREMENTS[p.currentStation] || 1;
+    const repStr = target > 1 ? `<span style="font-size:10px;color:${reps>=minReps?'var(--gold)':'var(--text-muted)'};margin-left:6px">${reps}/${target}×</span>` : '';
+
+    return `
+      <tr>
+        <td style="color:var(--text);font-size:12px">${p.name}${p.juz?`<span style="color:var(--text-muted);margin-left:6px;font-size:10px">${p.juz}</span>`:''}</td>
+        <td><div class="station-pill ${p.currentStation===7?'s7':p.currentStation===1?'s1':''}">${p.currentStation}</div></td>
+        <td><div class="station-bar">${dots}</div>${repStr}</td>
+        <td>${formatDate(p.lastReviewed)}</td>
+        <td>${formatDate(p.nextDueDate)}</td>
+        <td><span class="badge ${badgeClass}">${s}</span></td>
+        <td style="display:flex;gap:6px;justify-content:flex-end;white-space:nowrap">
+          <button class="btn btn-ghost" style="padding:5px 10px;font-size:11px" onclick="openEdit('${p.id}')">Edit</button>
+          <button class="btn btn-gold" style="padding:5px 10px;font-size:11px" onclick="openReview('${p.id}', false)">Review</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+//  STATISTICS
+// ══════════════════════════════════════════════════
+
+function renderStats() {
+  const data = getData();
+  const pages = data.pages;
+  const total = pages.length;
+
+  // Station breakdown
+  const counts = {1:0,2:0,3:0,4:0,5:0,6:0,7:0};
+  pages.forEach(p => { counts[p.currentStation] = (counts[p.currentStation]||0) + 1; });
+  const maxC = Math.max(...Object.values(counts), 1);
+
+  const stationNames = {1:'S1 (Day 0)',2:'S2 (Day 1)',3:'S3 (Day 5)',4:'S4 (Day 16)',5:'S5 (Day 41)',6:'S6 (Day 96)',7:'S7 (Day 186)'};
+
+  document.getElementById('station-breakdown').innerHTML = Object.entries(counts).map(([s,c]) => `
+    <div class="station-row">
+      <div class="s-label" style="font-size:10px">S${s}</div>
+      <div class="s-bar-wrap">
+        <div class="s-bar-fill" style="width:${total?Math.round(c/maxC*100):0}%;${parseInt(s)===7?'background:var(--gold)':''};"></div>
+      </div>
+      <div class="s-count">${c}</div>
+    </div>
+  `).join('');
+
+  // Maturity ring
+  const mature = pages.filter(p => p.currentStation >= 5).length;
+  const pct = total ? Math.round(mature/total*100) : 0;
+  const circ = 2 * Math.PI * 58;
+  const offset = circ - (pct/100 * circ);
+  const arc = document.getElementById('maturity-arc');
+  if (arc) {
+    arc.style.strokeDashoffset = offset;
+    arc.style.stroke = pct > 60 ? 'var(--gold)' : 'var(--green)';
+  }
+  const pctEl = document.getElementById('maturity-pct');
+  if (pctEl) pctEl.textContent = pct + '%';
+  const sumEl = document.getElementById('maturity-summary');
+  if (sumEl) sumEl.textContent = `${mature} of ${total} pages at Station 5 or above`;
+
+  // Heatmap (last 14 days)
+  const log = data.reviewLog || [];
+  const heatEl = document.getElementById('review-heatmap');
+  const days = Array.from({length:14}, (_,i) => addDays(today(), -13+i));
+  const maxRev = 1;
+  heatEl.innerHTML = days.map(d => {
+    const has = log.includes(d);
+    return `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="width:32px;height:${has?32:16}px;border-radius:4px;background:${has?'var(--green)':'var(--bg3)'};border:1px solid ${has?'var(--green)':'var(--border)'};transition:height 0.3s"></div>
+        <div style="font-size:9px;color:var(--text-muted)">${new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'numeric'})}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+//  HELP
+// ══════════════════════════════════════════════════
+
+function renderHelp() {
+  const stations = [
+    { s:1, label:'Station 1', interval:'Day 0 (same day)', reps:'5× (min 2)', desc:'Review immediately on the day of memorisation. First recall is critical. Target 5 repetitions; minimum 2 to advance.' },
+    { s:2, label:'Station 2', interval:'+1 day (Day 1)',   reps:'5× (min 2)', desc:'Next day review. Memory is still fresh but beginning to decay. Target 5 reps; minimum 2 to advance.' },
+    { s:3, label:'Station 3', interval:'+4 days (Day 5)',  reps:'3×',         desc:'After 4 days. The first real test of retention. Requires 3 full repetitions to advance.' },
+    { s:4, label:'Station 4', interval:'+11 days (Day 16)',reps:'3×',         desc:'Nearly 2 weeks later. Medium-term memory solidifying. Requires 3 full repetitions.' },
+    { s:5, label:'Station 5', interval:'+25 days (Day 41)',reps:'2×',         desc:'Almost a month. Long-term memory forming. Requires 2 repetitions.' },
+    { s:6, label:'Station 6', interval:'+55 days (Day 96)',reps:'2×',         desc:'Nearly 2 months. Deep storage. Nearly mature. Requires 2 repetitions.' },
+    { s:7, label:'Station 7', interval:'+90 days (Day 186)',reps:'1×',        desc:'Maintenance. Review monthly or quarterly. Requires 1 repetition per visit.' },
+  ];
+
+  document.getElementById('station-guide').innerHTML = stations.map(s => `
+    <div class="station-row" style="align-items:flex-start;flex-direction:column;gap:4px;padding:10px 0">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div class="station-pill ${s.s===7?'s7':s.s===1?'s1':''}" style="flex-shrink:0">${s.s}</div>
+        <span style="font-size:12px;color:var(--text);font-weight:500">${s.label}</span>
+        <span style="font-size:11px;color:var(--gold);margin-left:4px">${s.interval}</span>
+        <span style="font-size:10px;color:var(--amber);background:rgba(201,136,58,0.1);border:1px solid rgba(201,136,58,0.25);border-radius:99px;padding:1px 8px">${s.reps}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);padding-left:36px;line-height:1.6">${s.desc}</div>
+    </div>
+  `).join('');
+
+  // Hot layer info
+  const hotLayerEl = document.getElementById('hot-layer-info');
+  if (hotLayerEl) {
+    hotLayerEl.innerHTML = `
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.9">
+        <div style="margin-bottom:8px;color:var(--amber);font-size:12px;font-weight:500">Extra reinforcement in the first 20 days</div>
+        <div style="margin-bottom:8px">On Days <strong style="color:var(--text)">3, 8, and 13</strong> from when a Sabaq was added, the tracker will schedule a <em>Hot Layer</em> review. These do <strong style="color:var(--text)">not</strong> advance the station — they are extra light repetitions to strengthen early memory.</div>
+        <div style="margin-bottom:4px">Full first-20-day schedule per Sabaq:</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+          ${[
+            {d:'Day 0', t:'S1 ×5'},
+            {d:'Day 1', t:'S2 ×5'},
+            {d:'Day 3', t:'🌡 Hot'},
+            {d:'Day 5', t:'S3 ×3'},
+            {d:'Day 8', t:'🌡 Hot'},
+            {d:'Day 13', t:'🌡 Hot'},
+            {d:'Day 16', t:'S4 ×3'},
+          ].map(x => `
+            <div style="text-align:center;padding:6px 10px;border-radius:6px;background:${x.t.startsWith('🌡')?'rgba(201,136,58,0.1)':'var(--bg3)'};border:1px solid ${x.t.startsWith('🌡')?'rgba(201,136,58,0.25)':'var(--border)'}">
+              <div style="font-size:10px;color:var(--text-muted)">${x.d}</div>
+              <div style="font-size:11px;color:${x.t.startsWith('🌡')?'var(--amber)':'var(--text)'};margin-top:2px">${x.t}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  const faqs = [
+    { q:'Can I add a whole juz at once?', a:'You can add it as one entry (e.g. "Juz 30 – Full") or page by page. Page-by-page is recommended for precise tracking and focused review.' },
+    { q:'What if I miss a day?', a:'Overdue items are still shown and can be reviewed any time. The system will recalculate your next due date from the day you actually review.' },
+    { q:'How long to complete 7 stations?', a:'At minimum: Day 0 → Day 186 (~6 months) before reaching Station 7 maintenance. This is why consistency matters.' },
+    { q:'Why do Stations 1 & 2 have min 2 reps instead of 5?', a:'The target is 5 repetitions for early stations to cement new memorisation. But 2 is the floor — enough to confirm initial retention and advance. Aim for 5 whenever possible, especially for fresh memorisation.' },
+    { q:'Does this replace a teacher?', a:'No. This tracker aids self-study between sessions. A qualified Quran teacher (hafiz/sheikh) for tajweed and listening is irreplaceable.' },
+  ];
+
+  document.getElementById('faq-list').innerHTML = faqs.map((f,i) => `
+    <div class="info-item">
+      <div class="info-trigger" onclick="toggleFaq(${i})">
+        <span>${f.q}</span>
+        <span id="faq-arrow-${i}">▾</span>
+      </div>
+      <div class="info-body" id="faq-body-${i}">${f.a}</div>
+    </div>
+  `).join('');
+}
+
+function toggleFaq(i) {
+  const body = document.getElementById('faq-body-' + i);
+  const arrow = document.getElementById('faq-arrow-' + i);
+  if (body.classList.contains('open')) {
+    body.classList.remove('open');
+    arrow.textContent = '▾';
+  } else {
+    body.classList.add('open');
+    arrow.textContent = '▴';
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  MODAL HELPERS
+// ══════════════════════════════════════════════════
+
+window._reviewingId = null;
+window._selectedRating = null;
+window._isHotLayer = false;
+
+function openReview(id, isHotLayer = false) {
+  const data = getData();
+  const page = data.pages.find(p => p.id === id);
+  if (!page) return;
+  window._reviewingId = id;
+  window._selectedRating = null;
+  window._isHotLayer = isHotLayer;
+
+  document.getElementById('rm-title').textContent = page.name;
+  document.getElementById('rm-meta').textContent =
+    `Station ${page.currentStation} · ${page.juz||''} ${page.surah||''} · Last reviewed: ${formatDate(page.lastReviewed)}`;
+
+  // Hot layer banner
+  const banner = document.getElementById('rm-hotlayer-banner');
+  banner.style.display = isHotLayer ? 'block' : 'none';
+
+  // Rep progress (hidden for hot layer reviews)
+  const repWrap = document.getElementById('rm-rep-wrap');
+  if (isHotLayer) {
+    repWrap.style.display = 'none';
+  } else {
+    repWrap.style.display = 'flex';
+    const reps = page.stationReps || 0;
+    const target = REP_TARGETS[page.currentStation] || 1;
+    const minReps = REP_REQUIREMENTS[page.currentStation] || 1;
+    document.getElementById('rm-rep-label').textContent = `Rep ${reps} / ${target}`;
+    const hintParts = [];
+    if (reps < minReps) hintParts.push(`${minReps - reps} more before advancing`);
+    else hintParts.push('Minimum met — will advance on submit');
+    if (page.currentStation <= 2) hintParts.push(`target ${target}×, min ${minReps}× required`);
+    document.getElementById('rm-rep-hint').textContent = hintParts.join(' · ');
+    // Rep dots
+    const dots = Array.from({length: target}, (_,i) =>
+      `<div style="width:10px;height:10px;border-radius:50%;background:${i<reps?'var(--gold)':'var(--bg2)'};border:1px solid ${i<reps?'var(--gold)':'var(--border)'};transition:background .2s"></div>`
+    ).join('');
+    document.getElementById('rm-rep-dots').innerHTML = dots;
+  }
+
+  const notesWrap = document.getElementById('rm-notes-wrap');
+  const notesEl = document.getElementById('rm-notes');
+  if (page.notes) {
+    notesEl.textContent = page.notes;
+    notesWrap.style.display = 'block';
+  } else {
+    notesWrap.style.display = 'none';
+  }
+
+  document.getElementById('rm-notes-input').value = page.notes || '';
+  document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('rm-submit').disabled = true;
+
+  openModal('review-modal');
+}
+
+function selectRating(r) {
+  window._selectedRating = r;
+  document.querySelectorAll('.rating-btn').forEach((b,i) => {
+    b.classList.toggle('selected', i+1 === r);
+  });
+  document.getElementById('rm-submit').disabled = false;
+}
+
+function submitReview() {
+  if (!window._reviewingId || !window._selectedRating) return;
+  const notes = document.getElementById('rm-notes-input').value;
+  if (window._isHotLayer) {
+    hotLayerReviewPage(window._reviewingId, window._selectedRating, notes);
+  } else {
+    reviewPage(window._reviewingId, window._selectedRating, notes);
+  }
+  closeModal('review-modal');
+  renderCurrentPage();
+  updateDueBadge();
+}
+
+function openEdit(id) {
+  const data = getData();
+  const page = data.pages.find(p => p.id === id);
+  if (!page) return;
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-name').value = page.name;
+  document.getElementById('edit-notes').value = page.notes || '';
+  openModal('edit-modal');
+}
+
+function saveEdit() {
+  const id = document.getElementById('edit-id').value;
+  const data = getData();
+  const page = data.pages.find(p => p.id === id);
+  if (!page) return;
+  page.name = document.getElementById('edit-name').value.trim() || page.name;
+  page.notes = document.getElementById('edit-notes').value.trim();
+  saveData(data);
+  closeModal('edit-modal');
+  renderCurrentPage();
+  showToast('Page updated.');
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+  window._reviewingId = null;
+  window._selectedRating = null;
+  window._isHotLayer = false;
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeModal(overlay.id);
+  });
+});
+
+// ══════════════════════════════════════════════════
+//  UTILITY
+// ══════════════════════════════════════════════════
+
+function updateDueBadge() {
+  const data = getData();
+  const due = data.pages.filter(p => ['due','overdue'].includes(getStatus(p))).length;
+  const hotLayer = data.pages.filter(p => getHotLayerDue(p) !== null).length;
+  const total = due + hotLayer;
+  const badge = document.getElementById('due-badge');
+  if (total > 0) {
+    badge.style.display = 'inline';
+    badge.textContent = total;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function clearAddForm() {
+  ['add-name','add-juz','add-surah','add-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('add-pagecount').value = '1';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+function exportData() {
+  const data = getData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `quran-murajaah-backup-${today()}.json`;
+  a.click();
+  showToast('Backup exported successfully.');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!data.pages) throw new Error('Invalid format');
+      saveData(data);
+      showToast('Import successful! ' + data.pages.length + ' pages loaded.');
+      renderCurrentPage();
+      updateDueBadge();
+    } catch {
+      showToast('Import failed — invalid file.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ══════════════════════════════════════════════════
+//  ADHD FEATURES
+// ══════════════════════════════════════════════════
+
+// ── Session Storage keys (session-only, not persisted) ──────────────────────
+const ADHD_SESSION_KEY = 'adhd_session_v1';
+
+function loadSession() {
+  try { return JSON.parse(localStorage.getItem(ADHD_SESSION_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveSession(obj) {
+  localStorage.setItem(ADHD_SESSION_KEY, JSON.stringify(obj));
+}
+
+// ── Time estimate helper ─────────────────────────────────────────────────────
+// ~2 min per page for station 1-2, ~1.5 min for 3-4, ~1 min for 5-7
+function estimateMinutes(pages) {
+  return pages.reduce((sum, p) => {
+    const s = p.currentStation || 1;
+    const perPage = s <= 2 ? 2 : s <= 4 ? 1.5 : 1;
+    return sum + perPage * getPageCount(p);
+  }, 0);
+}
+
+function fmtMins(m) {
+  m = Math.round(m);
+  if (m < 60) return m + ' min';
+  return Math.floor(m/60) + 'h ' + (m%60 > 0 ? (m%60) + 'm' : '');
+}
+
+// ── Due pages helper ─────────────────────────────────────────────────────────
+function getDuePages() {
+  const data = getData();
+  return data.pages.filter(p => ['due','overdue'].includes(getStatus(p)))
+    .sort((a,b) => {
+      if (getStatus(a) === 'overdue' && getStatus(b) !== 'overdue') return -1;
+      if (getStatus(b) === 'overdue' && getStatus(a) !== 'overdue') return 1;
+      return (a.nextDueDate||'').localeCompare(b.nextDueDate||'');
+    });
+}
+
+// ── Today header: time estimate ──────────────────────────────────────────────
+function updateTodayEstimate() {
+  const due = getDuePages();
+  const hot = getData().pages.filter(p => getHotLayerDue(p) !== null);
+  const all = [...due, ...hot];
+  const el = document.getElementById('today-time-estimate');
+  if (!el) return;
+  if (all.length === 0) {
+    el.textContent = 'All caught up — nothing due today!';
+    return;
+  }
+  const mins = estimateMinutes(all);
+  el.innerHTML = `<strong style="color:var(--gold)">${all.length} page${all.length!==1?'s':''}</strong> due · <strong style="color:var(--text)">~${fmtMins(mins)}</strong> to complete all`;
+}
+
+// ── Session Anchor banner ────────────────────────────────────────────────────
+function renderSessionAnchor() {
+  const sess = loadSession();
+  const el = document.getElementById('session-anchor');
+  const detEl = document.getElementById('sa-detail');
+  if (!el || !detEl) return;
+
+  if (sess.lastPageName && sess.lastTime) {
+    const timeAgo = timeSince(sess.lastTime);
+    detEl.textContent = `${sess.lastPageName} · ${sess.doneToday || 0} done · ${timeAgo} ago`;
+    el.classList.add('visible');
+  } else {
+    el.classList.remove('visible');
+  }
+}
+
+function timeSince(isoStr) {
+  const diff = Math.round((Date.now() - new Date(isoStr).getTime()) / 60000);
+  if (diff < 1) return 'just now';
+  if (diff < 60) return diff + ' min';
+  return Math.floor(diff/60) + 'h ' + (diff%60) + 'm';
+}
+
+// ── 3-Day Horizon forecast ───────────────────────────────────────────────────
+function renderHorizon() {
+  const el = document.getElementById('horizon-card');
+  const rowsEl = document.getElementById('horizon-rows');
+  if (!el || !rowsEl) return;
+
+  const data = getData();
+  const t = today();
+  const days = [0, 1, 2];
+  const results = days.map(offset => {
+    const d = addDays(t, offset);
+    const pages = data.pages.filter(p => {
+      if (!p.nextDueDate) return false;
+      return p.nextDueDate <= d;
+    });
+    return { d, offset, count: pages.length, mins: estimateMinutes(pages) };
+  });
+
+  const maxCount = Math.max(...results.map(r => r.count), 1);
+
+  const dayLabels = ['Today', 'Tomorrow', 'Day after'];
+  rowsEl.innerHTML = results.map((r, i) => `
+    <div class="horizon-row">
+      <div class="horizon-day-label">${dayLabels[i]}</div>
+      <div class="horizon-bar-wrap">
+        <div class="horizon-bar-fill" style="width:${Math.round(r.count/maxCount*100)}%;${i===0?'background:var(--amber)':''}"></div>
+      </div>
+      <div class="horizon-count" style="color:${i===0&&r.count>0?'var(--amber)':'var(--text-dim)'}">${r.count}</div>
+      <div class="horizon-est">${r.count > 0 ? '~' + fmtMins(r.mins) : ''}</div>
+    </div>
+  `).join('');
+
+  el.classList.add('visible');
+}
+
+// ── FAB state ────────────────────────────────────────────────────────────────
+function updateBurstFab() {
+  const fab = document.getElementById('burst-fab');
+  if (!fab) return;
+  const due = getDuePages().length;
+  if (due > 0) {
+    fab.classList.add('has-due');
+    fab.title = `${due} pages due — Start Burst Mode`;
+  } else {
+    fab.classList.remove('has-due');
+  }
+}
+
+// ══ BURST MODE ═══════════════════════════════════════════════════════════════
+
+let _burstQueue   = [];
+let _burstIndex   = 0;
+let _burstDoneIds = [];
+let _burstDoneCount = 0;
+
+function startBurstMode() {
+  const due = getDuePages();
+  if (due.length === 0) {
+    showToast('No pages due right now — you\'re all caught up! ✦');
+    return;
+  }
+  _burstQueue   = due;
+  _burstIndex   = 0;
+  _burstDoneIds = [];
+  _burstDoneCount = 0;
+  showBurstPage();
+  document.getElementById('burst-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function showBurstPage() {
+  const page = _burstQueue[_burstIndex];
+  if (!page) { burstComplete(); return; }
+
+  const total = _burstQueue.length;
+  const done  = _burstIndex;
+  const pct   = total > 0 ? Math.round(done / total * 100) : 0;
+
+  // Progress
+  document.getElementById('burst-counter').textContent =
+    `Page ${done + 1} of ${total} · ${_burstDoneCount} done this session`;
+  document.getElementById('burst-progress-fill').style.width = pct + '%';
+
+  // Page info
+  document.getElementById('burst-page-name').textContent = page.name;
+  const metaParts = [];
+  if (page.juz)   metaParts.push(page.juz);
+  if (page.surah) metaParts.push(page.surah);
+  metaParts.push('Station ' + page.currentStation);
+  if (getStatus(page) === 'overdue') metaParts.push('⚠ OVERDUE');
+  document.getElementById('burst-meta').textContent = metaParts.join(' · ');
+
+  // Time estimate for this one page
+  const mins = estimateMinutes([page]);
+  const remaining = estimateMinutes(_burstQueue.slice(_burstIndex));
+  document.getElementById('burst-time-est').innerHTML =
+    `⏱ ~${fmtMins(mins)} this page &nbsp;·&nbsp; ~${fmtMins(remaining)} remaining`;
+}
+
+function burstDone() {
+  const page = _burstQueue[_burstIndex];
+  if (!page) return;
+
+  // Log as rating 4 (Good) — a quick "I reviewed it" without forcing a rating decision
+  reviewPage(page.id, 4, '');
+  _burstDoneIds.push(page.id);
+  _burstDoneCount++;
+
+  // Update session storage
+  const sess = loadSession();
+  sess.lastPageName = page.name;
+  sess.lastTime     = new Date().toISOString();
+  sess.doneToday    = (sess.doneToday || 0) + 1;
+  saveSession(sess);
+
+  // Micro-win flash
+  flashMicroWin(_burstDoneCount);
+
+  _burstIndex++;
+  // Refresh queue (some pages may have been due same day)
+  _burstQueue = getDuePages().filter(p => !_burstDoneIds.includes(p.id));
+  _burstIndex = 0;
+
+  if (_burstQueue.length === 0) {
+    burstComplete();
+  } else {
+    showBurstPage();
+  }
+
+  updateDueBadge();
+  updateBurstFab();
+}
+
+function burstSkip() {
+  const page = _burstQueue[_burstIndex];
+  if (!page) return;
+  // Move skipped page to end
+  _burstQueue.splice(_burstIndex, 1);
+  _burstQueue.push(page);
+  if (_burstIndex >= _burstQueue.length) _burstIndex = 0;
+  showBurstPage();
+}
+
+function burstAbort() {
+  const done = _burstDoneCount;
+  closeBurstOverlay();
+  if (done > 0) {
+    showToast(`Session saved — ${done} page${done!==1?'s':''} reviewed. BarakAllahu feek.`);
+  } else {
+    showToast('Session ended. Come back when ready.');
+  }
+  renderCurrentPage();
+}
+
+function burstOpenFull() {
+  const page = _burstQueue[_burstIndex];
+  if (!page) return;
+  closeBurstOverlay();
+  showPage('today');
+  openReview(page.id, false);
+}
+
+function burstComplete() {
+  closeBurstOverlay();
+  showToast(`All ${_burstDoneCount} page${_burstDoneCount!==1?'s':''} reviewed — JazakAllahu Khayran! 🌿`);
+  _burstDoneCount = 0;
+  renderCurrentPage();
+}
+
+function closeBurstOverlay() {
+  document.getElementById('burst-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── Micro-win flash ──────────────────────────────────────────────────────────
+function flashMicroWin(count) {
+  const el = document.getElementById('micro-win');
+  if (!el) return;
+  el.textContent = count === 1 ? '✦ 1 done today' : `✦ ${count} done today`;
+  el.classList.remove('flash');
+  void el.offsetWidth; // reflow to restart animation
+  el.classList.add('flash');
+}
+
+// ══════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderDashboard();
+  updateDueBadge();
+  updateBurstFab();
+  detectGap();
+
+  // Show sync config status
+  const el = document.getElementById('sync-status-m');
+  if (el) {
+    el.textContent = SYNC_ENDPOINT_M ? '' : '⚠ Sheet sync not configured';
+    el.style.color = 'var(--text-muted)';
+  }
+});
+// ══ GAP RECOVERY ══════════════════════════════════════════════════════════
+
+const JUBILEE_KEY      = 'gap_dismissed_v1';
+const GAP_THRESHOLD    = 7; // days before modal appears
+// STATION_INTERVALS already declared above — reused here
+
+function detectGap() {
+  const data     = getData();
+  const overdue  = data.pages.filter(p => getStatus(p) === 'overdue');
+  if (overdue.length === 0) return;
+
+  const allDates = (data.reviewLog || []).map(r => r.date).filter(Boolean).sort();
+  const lastDate = allDates[allDates.length - 1];
+  if (!lastDate) return;
+
+  const daysSince = Math.round((new Date(today()) - new Date(lastDate)) / 86400000);
+  if (daysSince < GAP_THRESHOLD) return;
+
+  const dismissed = localStorage.getItem(JUBILEE_KEY);
+  if (dismissed === today()) return;
+
+  document.getElementById('gap-overdue-count').textContent = overdue.length;
+  document.getElementById('gap-days-since').textContent    = daysSince;
+  document.getElementById('gap-overlay').classList.add('open');
+}
+
+function dismissGapModal() {
+  localStorage.setItem(JUBILEE_KEY, today());
+  document.getElementById('gap-overlay').classList.remove('open');
+}
+
+function doJubilee() {
+  const data = getData();
+  let count  = 0;
+  data.pages.forEach(p => {
+    if (getStatus(p) === 'overdue') {
+      p.nextDueDate = addDays(today(), STATION_INTERVALS[p.currentStation] || 7);
+      p.stationReps = 0;
+      count++;
+    }
+  });
+  saveData(data);
+  dismissGapModal();
+  showToast(`Jubilee — ${count} pages rescheduled. Start with one page today. ✦`);
+  renderCurrentPage();
+}
+
+function doDemotion() {
+  const data = getData();
+  let count  = 0;
+  data.pages.forEach(p => {
+    if (getStatus(p) === 'overdue') {
+      p.currentStation = Math.max(1, (p.currentStation || 1) - 1);
+      p.nextDueDate    = addDays(today(), STATION_INTERVALS[p.currentStation] || 1);
+      p.stationReps    = 0;
+      count++;
+    }
+  });
+  saveData(data);
+  dismissGapModal();
+  showToast(`${count} pages demoted one station and rescheduled forward. ✦`);
+  renderCurrentPage();
+}
+
+function doTriage() {
+  dismissGapModal();
+  localStorage.setItem('triage_mode', today());
+  showPage('today');
+  renderCurrentPage();
+  showToast('Triage — tap "Solid" on pages you still know well. Focus on the rest.');
+}
+
+function triageSolid(pageId) {
+  const data = getData();
+  const p    = data.pages.find(x => x.id === pageId);
+  if (!p) return;
+  p.nextDueDate = addDays(today(), 30);
+  p.stationReps = 0;
+  saveData(data);
+  showToast(`"${p.name}" pushed 30 days — focus on the shaky ones. ✦`);
+  renderCurrentPage();
+}
+</script>
+
+<footer style="position:fixed;bottom:0;left:0;padding:6px 16px;background:linear-gradient(to top, var(--bg1) 60%, transparent);border:none;font-size:10px;color:var(--text-muted);letter-spacing:0.06em;text-align:left;z-index:10;pointer-events:none">
+  Built for consistent hifz insha'Allah · Quran Murajaah Tracker – 7 Station SRS
+</footer>
+
+<!-- ══ GAP RECOVERY MODAL ══ -->
+<div id="gap-overlay">
+  <div id="gap-card">
+    <h3>Welcome back</h3>
+    <p>
+      You have <strong id="gap-overdue-count" style="color:var(--gold)"></strong> overdue pages
+      after a <strong id="gap-days-since" style="color:var(--gold)"></strong>-day gap.
+      The pile is not a debt — choose how to re-enter:
+    </p>
+    <button class="gap-btn" onclick="doJubilee()">
+      <strong>⚡ Jubilee Reset</strong>
+      <span>Mark all overdue as passed, reschedule from today. Clean slate.</span>
+    </button>
+    <button class="gap-btn" onclick="doDemotion()">
+      <strong>📉 Station Demotion</strong>
+      <span>Drop each overdue page one station, reschedule from today. Honest reset.</span>
+    </button>
+    <button class="gap-btn" onclick="doTriage()">
+      <strong>🔍 Triage Mode</strong>
+      <span>Review cards show a "Solid" button — push confident pages 30 days, focus on shaky ones only.</span>
+    </button>
+    <button class="gap-dismiss" onclick="dismissGapModal()">Not now — remind me tomorrow</button>
+  </div>
+</div>
+</body>
+</html>

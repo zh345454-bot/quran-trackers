@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="manifest-manzil.json">
+  <meta name="theme-color" content="#c8922a">
+  <link rel="apple-touch-icon" href="icon-manzil-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Manzil">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manzil Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf7f2;
+    --surface: #ffffff;
+    --surface2: #f5f0e8;
+    --border: #e8e0d0;
+    --text: #2c2416;
+    --text2: #7a6a52;
+    --text3: #b0a090;
+    --gold: #c8922a;
+    --gold-light: #f5e8cc;
+    --gold-border: #e8c878;
+    --green: #3b6d3a;
+    --green-light: #e8f2e8;
+    --red: #8b2a2a;
+    --red-light: #f5e8e8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .top-bar { background: var(--gold); height: 4px; }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1.4rem 1.25rem 1.1rem;
+  }
+
+  .header-inner { max-width: 680px; margin: 0 auto; }
+
+  .arabic-heading {
+    font-family: 'Amiri', serif;
+    font-size: 22px; color: var(--gold);
+    text-align: center; margin-bottom: 5px;
+  }
+
+  .app-title {
+    font-family: 'Lora', serif; font-size: 20px;
+    font-weight: 600; text-align: center; color: var(--text); margin-bottom: 2px;
+  }
+
+  .app-sub { font-size: 12px; color: var(--text3); text-align: center; }
+
+  .nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .nav-inner { max-width: 680px; margin: 0 auto; display: flex; }
+
+  .nav-tab {
+    flex: 1; padding: 12px 6px;
+    font-size: 12px; font-family: 'DM Sans', sans-serif; font-weight: 500;
+    color: var(--text2); background: none; border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer; transition: all 0.15s; text-align: center;
+  }
+
+  .nav-tab:hover { color: var(--gold); }
+  .nav-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  .main { max-width: 680px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.1rem 1.25rem; margin-bottom: 1rem;
+  }
+
+  .card-label {
+    font-size: 10px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text3); margin-bottom: 10px;
+  }
+
+  .section-hint { font-size: 12px; color: var(--text3); margin-bottom: 10px; font-style: italic; }
+
+  /* stats */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem;
+  }
+
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px; text-align: center;
+  }
+
+  .stat-icon { font-size: 18px; margin-bottom: 4px; }
+
+  .stat-val {
+    font-family: 'Lora', serif; font-size: 24px;
+    font-weight: 600; line-height: 1; margin-bottom: 3px;
+  }
+
+  .stat-lbl { font-size: 11px; color: var(--text3); }
+
+  /* today dark card */
+  .today-card {
+    background: linear-gradient(135deg, #2c2416 0%, #4a3820 100%);
+    border: none; border-radius: 14px;
+    padding: 1.4rem 1.5rem; margin-bottom: 1rem;
+    color: #fff; position: relative; overflow: hidden;
+  }
+
+  .today-card::before {
+    content: ''; position: absolute;
+    top: -30px; right: -30px; width: 120px; height: 120px;
+    border-radius: 50%; background: rgba(200,146,42,0.15);
+  }
+
+  .today-date-lbl {
+    font-size: 11px; color: rgba(255,255,255,0.5);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;
+  }
+
+  .picker-section-lbl {
+    font-size: 10px; color: rgba(255,255,255,0.4);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px;
+  }
+
+  /* juz slots */
+  .juz-slots { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+
+  .juz-slot { display: flex; align-items: flex-start; gap: 8px; }
+
+  .slot-label {
+    font-size: 11px; color: rgba(255,255,255,0.35);
+    padding-top: 6px; width: 16px; flex-shrink: 0; text-align: right;
+  }
+
+  .juz-chips { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
+
+  .juz-chip {
+    padding: 4px 10px; border-radius: 6px;
+    font-size: 12px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.6);
+    cursor: pointer; transition: all 0.12s; user-select: none;
+  }
+
+  .juz-chip:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+  .juz-chip.selected {
+    background: var(--gold); border-color: var(--gold); color: #fff;
+  }
+
+  .juz-chip.taken {
+    opacity: 0.25; cursor: not-allowed; pointer-events: none;
+  }
+
+  .slot-remove {
+    background: none; border: none;
+    color: rgba(255,255,255,0.25); font-size: 18px;
+    cursor: pointer; padding: 2px 4px; flex-shrink: 0;
+    line-height: 1; padding-top: 4px;
+    transition: color 0.12s;
+  }
+
+  .slot-remove:hover { color: rgba(255,255,255,0.6); }
+
+  .add-slot-btn {
+    font-size: 12px; color: rgba(255,255,255,0.4);
+    background: none; border: 1px dashed rgba(255,255,255,0.2);
+    border-radius: 7px; padding: 6px 14px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all 0.12s;
+    margin-bottom: 12px; display: inline-block;
+  }
+
+  .add-slot-btn:hover { color: rgba(255,255,255,0.65); border-color: rgba(255,255,255,0.4); }
+
+  .today-summary {
+    font-size: 13px; color: rgba(255,255,255,0.55);
+    margin-bottom: 12px; min-height: 20px;
+  }
+
+  .sum-tag {
+    display: inline-block; background: rgba(200,146,42,0.3);
+    color: var(--gold-border); border-radius: 4px;
+    padding: 1px 8px; font-size: 12px; font-weight: 500; margin-right: 3px;
+  }
+
+  .action-row { display: flex; gap: 8px; }
+
+  .btn-done, .btn-skip {
+    flex: 1; padding: 10px; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    border: none; cursor: pointer; transition: transform 0.1s;
+  }
+
+  .btn-done:active, .btn-skip:active { transform: scale(0.97); }
+  .btn-done { background: var(--gold); color: #fff; }
+  .btn-skip {
+    background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.75);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  /* week strip */
+  .week-strip {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
+  }
+
+  .wday {
+    border-radius: 8px; padding: 6px 3px; text-align: center;
+    border: 1px solid var(--border); background: var(--surface2);
+  }
+
+  .wday-name { font-size: 10px; color: var(--text3); margin-bottom: 2px; }
+  .wday-juz { font-size: 10px; font-weight: 500; color: var(--text2); line-height: 1.3; }
+  .wday-count { font-size: 9px; color: var(--text3); margin-top: 1px; }
+
+  .wday.today-day { border-color: var(--gold-border); background: var(--gold-light); }
+  .wday.today-day .wday-juz { color: var(--gold); }
+  .wday.today-day .wday-count { color: var(--gold); }
+  .wday.done-day { background: var(--green-light); border-color: #a8cca8; }
+  .wday.done-day .wday-juz { color: var(--green); }
+  .wday.done-day .wday-count { color: var(--green); }
+  .wday.skip-day { background: var(--red-light); border-color: #ccaaaa; }
+  .wday.skip-day .wday-juz { color: var(--red); }
+
+  /* log list */
+  .log-item { padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .log-item:last-child { border-bottom: none; }
+
+  .log-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+
+  .log-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .log-dot.done { background: var(--green); }
+  .log-dot.skipped { background: var(--red); }
+
+  .log-date { font-size: 12px; color: var(--text3); min-width: 84px; }
+
+  .log-badge {
+    font-size: 11px; padding: 2px 10px; border-radius: 20px;
+    font-weight: 500; margin-left: auto;
+  }
+
+  .log-badge.done { background: var(--green-light); color: var(--green); }
+  .log-badge.skipped { background: var(--red-light); color: var(--red); }
+
+  .log-remove {
+    font-size: 11px; color: var(--text3); background: none;
+    border: none; cursor: pointer; padding: 2px 6px; border-radius: 4px;
+  }
+
+  .log-remove:hover { color: var(--red); }
+
+  .log-juz-row { display: flex; flex-wrap: wrap; gap: 5px; padding-left: 16px; }
+
+  .log-juz-tag {
+    font-size: 12px; font-weight: 500;
+    background: var(--surface2); color: var(--text2);
+    border-radius: 5px; padding: 2px 9px; border: 1px solid var(--border);
+  }
+
+  /* manual entry form */
+  .form-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+
+  .form-row input, .form-row select {
+    padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    background: var(--surface2); color: var(--text);
+  }
+
+  .manual-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+
+  .manual-chip {
+    padding: 5px 12px; border-radius: 7px; font-size: 13px; font-weight: 500;
+    border: 1px solid var(--border); background: var(--surface2); color: var(--text2);
+    cursor: pointer; transition: all 0.12s; user-select: none;
+  }
+
+  .manual-chip.selected {
+    background: var(--gold-light); border-color: var(--gold-border); color: var(--gold);
+  }
+
+  .btn-add {
+    padding: 9px 20px; background: var(--gold); color: #fff;
+    border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+  }
+
+  /* rotation */
+  .rot-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+  .rot-table th {
+    text-align: left; padding: 7px 8px; color: var(--text3);
+    font-weight: 500; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.06em; border-bottom: 1px solid var(--border);
+  }
+
+  .rot-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .rot-table tr:last-child td { border-bottom: none; }
+  .rot-table tr.today-row td { background: var(--gold-light); }
+
+  .day-pill {
+    display: inline-block; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--surface2); text-align: center; line-height: 26px;
+    font-size: 11px; font-weight: 500; color: var(--text2);
+  }
+
+  .today-row .day-pill { background: var(--gold); color: #fff; }
+
+  .rot-juz-badge {
+    display: inline-block;
+    padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;
+    background: var(--gold-light); border: 1px solid var(--gold-border); color: var(--gold);
+    margin-right: 4px; margin-bottom: 2px;
+  }
+
+  .today-row .rot-juz-badge {
+    background: var(--gold); border-color: var(--gold); color: #fff;
+  }
+  /* monthly */
+  .month-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+  .month-juz {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; display: flex; align-items: center;
+    justify-content: space-between; background: var(--surface);
+  }
+
+  .month-juz-name { font-size: 13px; font-weight: 500; }
+  .month-count { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(--text3); }
+  .month-count.has-reads { color: var(--green); }
+
+  /* export */
+  .export-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px;
+    font-family: 'Courier New', monospace; font-size: 11.5px;
+    color: var(--text); white-space: pre-wrap; word-break: break-word;
+    max-height: 340px; overflow-y: auto; margin-bottom: 10px; line-height: 1.7;
+  }
+
+  .copy-btn {
+    width: 100%; padding: 10px; background: var(--gold); color: #fff;
+    border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+  }
+
+  .empty { text-align: center; padding: 2rem 1rem; color: var(--text3); font-size: 13px; }
+
+  /* settings / manage juz */
+  .juz-manage-grid {
+    display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px;
+  }
+
+  .juz-manage-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 10px 5px 12px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    background: var(--gold-light); border: 1px solid var(--gold-border); color: var(--gold);
+  }
+
+  .juz-manage-remove {
+    background: none; border: none; cursor: pointer;
+    color: var(--gold); font-size: 15px; line-height: 1;
+    padding: 0; opacity: 0.6; transition: opacity 0.12s;
+  }
+
+  .juz-manage-remove:hover { opacity: 1; }
+
+  .add-juz-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .add-juz-row input[type=number] {
+    width: 80px; padding: 9px 10px;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    background: var(--surface2); color: var(--text); text-align: center;
+  }
+
+  .add-juz-row input[type=number]::-webkit-inner-spin-button { opacity: 1; }
+
+  .btn-add-juz {
+    padding: 9px 18px; background: var(--gold); color: #fff;
+    border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+  }
+
+  .settings-note {
+    font-size: 12px; color: var(--text3); margin-top: 10px;
+    padding: 10px 12px; background: var(--surface2);
+    border-radius: 8px; border: 1px solid var(--border);
+  }
+
+  /* backup / import */
+  .transfer-row { display: flex; gap: 8px; margin-bottom: 10px; }
+
+  .btn-download {
+    flex: 1; padding: 10px; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    background: var(--green); color: #fff; border: none; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .btn-download:hover { opacity: 0.88; }
+
+  .btn-import-label {
+    flex: 1; padding: 10px; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    background: var(--surface2); color: var(--text2);
+    border: 1px solid var(--border); cursor: pointer;
+    text-align: center; transition: background 0.15s;
+  }
+
+  .btn-import-label:hover { background: var(--border); }
+
+  .import-merge-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px; font-size: 13px; color: var(--text2);
+  }
+
+  .import-merge-row input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--gold); }
+
+  .import-status {
+    font-size: 12px; padding: 9px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text2); display: none; margin-top: 6px;
+  }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: var(--text); color: #fff;
+    padding: 10px 20px; border-radius: 24px;
+    font-size: 13px; font-weight: 500;
+    transition: transform 0.25s ease; z-index: 999; white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── half-juz picker (today card) ── */
+  .half-section {
+    margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .half-juz-grid {
+    display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 9px;
+  }
+  .half-juz-chip {
+    padding: 4px 9px; border-radius: 6px; font-size: 11px; font-weight: 500;
+    border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.12s; user-select: none;
+  }
+  .half-juz-chip:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .half-juz-chip.hsel { background: rgba(200,146,42,0.35); border-color: var(--gold-border); color: #f5d98c; }
+  .half-toggle-row { display: flex; gap: 6px; align-items: center; margin-bottom: 9px; flex-wrap: wrap; }
+  .half-toggle {
+    padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 500;
+    border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.55); cursor: pointer; transition: all 0.12s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .half-toggle.hsel { background: var(--gold); border-color: var(--gold); color: #fff; }
+  .half-add-btn {
+    padding: 5px 14px; border-radius: 7px; font-size: 12px; font-weight: 500;
+    border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.65); cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.12s;
+  }
+  .half-add-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .half-add-btn:not(:disabled):hover { background: rgba(255,255,255,0.22); color: #fff; }
+  .half-readings-row { display: flex; flex-wrap: wrap; gap: 5px; min-height: 4px; }
+  .half-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 4px 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    background: rgba(200,146,42,0.25); color: #f5d98c;
+    border: 1px solid rgba(200,146,42,0.4);
+  }
+  .half-tag-remove {
+    background: none; border: none; color: rgba(255,255,255,0.4);
+    cursor: pointer; font-size: 14px; line-height: 1; padding: 0 4px;
+  }
+  .half-tag-remove:hover { color: rgba(255,255,255,0.8); }
+
+  /* ── half-juz display in log + month ── */
+  .log-juz-tag.half {
+    background: var(--gold-light); color: var(--gold); border-color: var(--gold-border);
+  }
+
+  /* ── manual half-juz picker (log page) ── */
+  .manual-half-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .manual-half-chip {
+    padding: 4px 10px; border-radius: 7px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); background: var(--surface2); color: var(--text2);
+    cursor: pointer; transition: all 0.12s; user-select: none;
+  }
+  .manual-half-chip.hsel {
+    background: var(--gold-light); border-color: var(--gold-border); color: var(--gold);
+  }
+  .half-toggle-light {
+    padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); background: var(--surface2); color: var(--text2);
+    cursor: pointer; transition: all 0.12s; font-family: 'DM Sans', sans-serif;
+  }
+  .half-toggle-light.hsel {
+    background: var(--gold-light); border-color: var(--gold-border); color: var(--gold);
+  }
+  .half-add-btn-light {
+    padding: 5px 14px; border-radius: 7px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); background: var(--surface2); color: var(--text2);
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.12s;
+  }
+  .half-add-btn-light:disabled { opacity: 0.35; cursor: not-allowed; }
+  .half-add-btn-light:not(:disabled):hover { background: var(--gold-light); color: var(--gold); }
+  .manual-half-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 4px 2px 9px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    background: var(--gold-light); color: var(--gold); border: 1px solid var(--gold-border);
+  }
+  .manual-half-tag-remove {
+    background: none; border: none; color: var(--gold); opacity: 0.6;
+    cursor: pointer; font-size: 13px; padding: 0 4px;
+  }
+  .manual-half-tag-remove:hover { opacity: 1; }
+
+  /* ── advisor card ── */
+  .advisor-card {
+    background: var(--surface); border: 1px solid var(--gold-border);
+    border-radius: 12px; padding: 1.1rem 1.25rem; margin-bottom: 1rem;
+    border-left: 3px solid var(--gold);
+  }
+  .advisor-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start; }
+  .advisor-icon { font-size: 15px; flex-shrink: 0; padding-top: 1px; }
+  .advisor-text { font-size: 13px; color: var(--text2); line-height: 1.55; }
+  .advisor-text strong { color: var(--text); }
+  .advisor-milestone {
+    font-size: 11px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--gold); margin-bottom: 5px; margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar"></div>
+
+<header>
+  <div class="header-inner">
+    <div class="arabic-heading">وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا</div>
+    <div class="app-title">Daily Manzil Tracker</div>
+    <div class="app-sub">A daily companion for the lifelong memoriser</div>
+    <div style="text-align:center;margin-top:6px">
+      <span id="sync-status" style="font-size:10px;color:var(--text3);letter-spacing:0.05em"></span>
+    </div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <button class="nav-tab active" onclick="showPage('today', this)">Today</button>
+    <button class="nav-tab" onclick="showPage('log', this)">Log</button>
+    <button class="nav-tab" onclick="showPage('rotation', this)">Rotation</button>
+    <button class="nav-tab" onclick="showPage('monthly', this)">Monthly</button>
+    <button class="nav-tab" onclick="showPage('export', this)">Export</button>
+    <button class="nav-tab" onclick="showPage('settings', this)">⚙ Juz</button>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- TODAY -->
+  <div class="page active" id="page-today">
+
+    <div class="today-card">
+      <div class="today-date-lbl" id="today-date-lbl"></div>
+
+      <div class="picker-section-lbl">Select juz read today (up to 3)</div>
+      <div class="juz-slots" id="juz-slots"></div>
+      <button class="add-slot-btn" id="add-slot-btn" onclick="addSlot()">+ Add another juz</button>
+
+      <!-- half-juz picker -->
+      <div class="half-section">
+        <div class="picker-section-lbl">½ Juz — log from any juz 1–30</div>
+        <div class="half-juz-grid" id="half-juz-grid"></div>
+        <div class="half-toggle-row">
+          <button class="half-toggle" id="ht-a" onclick="pickHalf('a')">◐ 1st half</button>
+          <button class="half-toggle" id="ht-b" onclick="pickHalf('b')">◑ 2nd half</button>
+          <button class="half-add-btn" id="half-add-btn" onclick="addHalfEntry()" disabled>Add ½</button>
+        </div>
+        <div class="half-readings-row" id="half-readings-row"></div>
+      </div>
+
+      <div class="today-summary" id="today-summary"></div>
+
+      <div class="action-row">
+        <button class="btn-done" onclick="logToday('done')">✓ Log reading</button>
+        <button class="btn-skip" onclick="logToday('skipped')">Skip today</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">This week</div>
+      <div class="week-strip" id="week-strip"></div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">📖</div>
+        <div class="stat-val" id="stat-done" style="color:var(--green)">0</div>
+        <div class="stat-lbl">Days done</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-val" id="stat-streak">0</div>
+        <div class="stat-lbl">Streak</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div class="stat-val" id="stat-skipped" style="color:var(--red)">0</div>
+        <div class="stat-lbl">Skipped</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- LOG -->
+  <div class="page" id="page-log">
+    <div class="card">
+      <div class="card-label">Add / edit entry</div>
+      <div class="form-row">
+        <input type="date" id="manual-date" style="flex:1;min-width:130px;">
+        <select id="manual-status" onchange="toggleManualJuzVisibility()">
+          <option value="done">Done</option>
+          <option value="skipped">Skipped</option>
+        </select>
+      </div>
+      <div id="manual-juz-section">
+        <p class="section-hint">Select full juz read (up to 3):</p>
+        <div class="manual-chips" id="manual-chips"></div>
+      </div>
+      <div id="manual-half-section">
+        <p class="section-hint">½ Juz — any juz 1–30 (optional):</p>
+        <div class="manual-half-grid" id="manual-half-chips"></div>
+        <div class="half-toggle-row" style="margin-bottom:8px;">
+          <button class="half-toggle-light" id="mht-a" onclick="pickManualHalf('a')">◐ 1st half</button>
+          <button class="half-toggle-light" id="mht-b" onclick="pickManualHalf('b')">◑ 2nd half</button>
+          <button class="half-add-btn-light" id="manual-half-add-btn" onclick="addManualHalfEntry()" disabled>Add ½</button>
+        </div>
+        <div id="manual-half-tags" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;"></div>
+      </div>
+      <button class="btn-add" onclick="addManualEntry()">Add entry</button>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Session history</div>
+      <div id="log-list"></div>
+    </div>
+  </div>
+
+  <!-- ROTATION -->
+  <div class="page" id="page-rotation">
+    <div class="card">
+      <div class="card-label">Daily rotation</div>
+      <p class="section-hint" id="rot-hint"></p>
+      <table class="rot-table" id="rot-table"></table>
+    </div>
+  </div>
+
+  <!-- MONTHLY -->
+  <div class="page" id="page-monthly">
+    <div class="card">
+      <div class="card-label" id="month-label"></div>
+      <p class="section-hint">Times each juz was completed this calendar month.</p>
+      <div class="month-grid" id="month-grid"></div>
+    </div>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="page" id="page-export">
+    <div class="card">
+      <div class="card-label">Backup &amp; Transfer</div>
+      <p class="section-hint">Download your full data as a JSON file, then import it on any other device.</p>
+      <div class="transfer-row">
+        <button class="btn-download" onclick="downloadBackup()">⬇ Download backup</button>
+        <label class="btn-import-label">
+          ⬆ Import file
+          <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="handleImport(this)">
+        </label>
+      </div>
+      <div class="import-merge-row">
+        <input type="checkbox" id="merge-mode" checked>
+        <label for="merge-mode">Merge with existing data (uncheck to replace)</label>
+      </div>
+      <div class="import-status" id="import-status"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Weekly .md snapshot</div>
+      <p class="section-hint">Copy and paste into your notes. Update weekly.</p>
+      <div class="export-box" id="export-box"></div>
+      <button class="copy-btn" onclick="copyExport()">Copy to clipboard</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <div class="card">
+      <div class="card-label">Active Juz Pool</div>
+      <p class="section-hint">These juz appear in the Today picker and Log entry.</p>
+      <div class="juz-manage-grid" id="juz-manage-grid"></div>
+      <div class="add-juz-row">
+        <input type="number" id="new-juz-input" min="1" max="30" placeholder="1–30" onkeydown="if(event.key==='Enter') addJuz()">
+        <button class="btn-add-juz" onclick="addJuz()">+ Add Juz</button>
+      </div>
+      <div class="settings-note">
+        Juz 1–30 are valid. The rotation schedule updates automatically — 2 juz/day for pools up to 19 juz, then 3 juz/day from 20 onwards. Each new juz slots into its correct numerical position in the cycle.
+      </div>
+    </div>
+
+    <!-- guide card -->
+    <div class="advisor-card">
+      <div class="card-label" style="color:var(--gold);">Guide — how to use this tracker</div>
+
+      <div class="advisor-milestone">The goal · Consistency over volume</div>
+      <div class="advisor-row">
+        <div class="advisor-icon">🌿</div>
+        <div class="advisor-text">
+          <strong>The best muraja'ah is the one you can sustain for life.</strong> Even a single juz daily — held consistently across months and years — is worth far more than a heavy load that burns out in weeks. This tracker is built around that principle: protect the habit first, then grow it.
+        </div>
+      </div>
+
+      <div class="advisor-milestone">Getting started · Build your pool</div>
+      <div class="advisor-row">
+        <div class="advisor-icon">📖</div>
+        <div class="advisor-text">
+          <strong>Add only the juz you have memorised and are ready to revise.</strong> Go to the <em>⚙ Juz</em> tab and add each juz to your active pool. A starting pool of 5–10 juz at 2 juz/day gives a healthy 3–5 day rotation — close enough to keep each juz fresh in your memory.
+        </div>
+      </div>
+
+      <div class="advisor-milestone">Daily reading · The rotation system</div>
+      <div class="advisor-row">
+        <div class="advisor-icon">🔄</div>
+        <div class="advisor-text">
+          <strong>The tracker assigns your juz automatically — just open Today and read.</strong> Your active pool is divided evenly across a rolling cycle: 2 juz/day for pools up to 19 juz, and 3 juz/day once your pool reaches 20. You do not need to plan what to read each day — the Rotation tab shows the full schedule at a glance.
+        </div>
+      </div>
+
+      <div class="advisor-milestone">Growing your pool · Add gradually</div>
+      <div class="advisor-row">
+        <div class="advisor-icon">📈</div>
+        <div class="advisor-text">
+          <strong>Add 1–2 new juz every 2–4 weeks, only when each feels solid.</strong> A juz is ready for your pool when you can recite it confidently without prompting. Never rush this — adding juz before they are firm creates stress rather than progress. Use the <em>⚙ Juz</em> tab to add at any time; the rotation updates automatically.
+        </div>
+      </div>
+
+      <div class="advisor-milestone">Bonus reading · The ½ juz feature</div>
+      <div class="advisor-row">
+        <div class="advisor-icon">◐</div>
+        <div class="advisor-text">
+          <strong>Use the ½ Juz picker for any reading beyond your daily quota.</strong> On lighter days, during travel, or whenever you feel motivated, log a half-juz from any juz 1–30 — even juz outside your active pool. The Monthly tab tracks these accurately: two halves of the same juz count as one complete juz, while an unpaired half shows as ½.
+        </div>
+      </div>
+
+      <div class="advisor-milestone">Readiness signals · When to do more</div>
+      <div class="advisor-row">
+        <div class="advisor-icon">✅</div>
+        <div class="advisor-text">
+          Consider increasing your pool size or daily quota when: (1) you have maintained a <strong>14+ day streak</strong> at your current load without strain, (2) your daily reading feels effortless rather than effortful, and (3) your schedule has genuine capacity for more. Meeting all three is ideal — but two out of three is enough to take the next step.
+        </div>
+      </div>
+
+      <div class="advisor-milestone">Skipped days · Log honestly</div>
+      <div class="advisor-row">
+        <div class="advisor-icon">📅</div>
+        <div class="advisor-text">
+          <strong>Record skipped days rather than leaving them blank.</strong> The streak counter and monthly overview only give you an accurate picture when skips are logged. A skipped day is not a failure — it is information. Patterns in your log reveal when life is working against the habit, and that is when it is time to adjust, not abandon.
+        </div>
+      </div>
+
+      <div class="advisor-milestone">A note on intention</div>
+      <div class="advisor-row">
+        <div class="advisor-icon">🤲</div>
+        <div class="advisor-text">
+          This tracker is a means, not an end. Numbers and streaks are useful only insofar as they serve your connection with the Quran. On days when life is heavy, even sitting with the mushaf for a few minutes has its own barakah — log what you can and let Allah complete the rest.
+        </div>
+      </div>
+    </div>
+
+</div>
+
+<script>
+const DEFAULT_JUZ = [1,2,3,4,5,6,7,8,9,10];
+let ALL_JUZ = JSON.parse(localStorage.getItem('manzil-juz') || 'null') || [...DEFAULT_JUZ];
+
+function saveJuz() { localStorage.setItem('manzil-juz', JSON.stringify(ALL_JUZ)); }
+
+const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const ANCHOR = new Date('2026-03-29T00:00:00');
+
+/* ── dynamic rotation ── */
+function getJuzPerDay() { return ALL_JUZ.length >= 20 ? 3 : 2; }
+
+function buildRotation() {
+  const jpd = getJuzPerDay();
+  const days = [];
+  for (let i = 0; i < ALL_JUZ.length; i += jpd) {
+    days.push(ALL_JUZ.slice(i, i + jpd));
+  }
+  return days;
+}
+
+function cycleIdx(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const diff = Math.round((d - ANCHOR) / 86400000);
+  const len = buildRotation().length;
+  return ((diff % len) + len) % len;
+}
+
+function scheduledJuz(dateStr) { return buildRotation()[cycleIdx(dateStr)]; }
+
+// Data model: { date, status, juzList: [9, "14a", "7b"] }
+// Full juz stored as numbers; half-juz as strings e.g. "14a" (1st half) "14b" (2nd half)
+let log = JSON.parse(localStorage.getItem('manzil-v3') || '[]');
+
+// Today picker: full juz slots (max 3)
+let slots = [null];
+
+// Today half-juz picker state
+let halfSlotJuz = null;
+let halfSlotHalf = null;
+let halfReadings = [];   // e.g. ["14a", "7b"]
+
+// Manual entry half-juz picker state
+let manualHalfJuz = null;
+let manualHalfHalf = null;
+let manualHalfReadings = [];
+
+/* ── entry formatters ── */
+function fmtEntry(r) {
+  // r is number (full) or string like "14a"/"14b"
+  if (typeof r === 'number') return 'Juz ' + r;
+  const n = parseInt(r);
+  const h = r.slice(-1);
+  return 'Juz ' + n + ' (' + (h === 'a' ? '1st' : '2nd') + ' ½)';
+}
+
+function fmtEntryShort(r) {
+  if (typeof r === 'number') return 'J' + r;
+  const n = parseInt(r);
+  const h = r.slice(-1);
+  return 'J' + n + (h === 'a' ? '½①' : '½②');
+}
+
+function save() {
+  localStorage.setItem('manzil-v3', JSON.stringify(log));
+  scheduleSyncDebounced();
+}
+
+/* ── Google Sheets Sync Bridge ─────────────────────────────────────────── */
+const SYNC_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzrQZyHiCFhi6zoTsWeuopbwFEJdiJONOjoh4Co5BHUXfv1sFkF1YDCSqJfZCtWddF46g/exec';
+
+let _syncTimer = null;
+function scheduleSyncDebounced() {
+  if (!SYNC_ENDPOINT) return;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(pushToSheets, 2000); // 2 s debounce
+}
+
+async function pushToSheets() {
+  if (!SYNC_ENDPOINT) return;
+  const juzPool = JSON.parse(localStorage.getItem('manzil-juz') || '[]');
+  const payload = { log, juz: juzPool };
+  const body = JSON.stringify({ source: 'manzil', payload });
+  try {
+    setSyncStatus('syncing');
+    // no-cors mode required when opening from file:// — response is opaque but data arrives
+    await fetch(SYNC_ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: body
+    });
+    setSyncStatus('ok');
+  } catch (e) {
+    setSyncStatus('error', e.message);
+  }
+}
+
+function setSyncStatus(state, msg) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const map = {
+    syncing: { text: '⟳ Syncing…',  color: 'var(--text3)' },
+    ok:      { text: '✓ Synced',     color: 'var(--green)' },
+    error:   { text: '✕ Sync error', color: 'var(--red)' }
+  };
+  const s = map[state] || map.error;
+  el.textContent = s.text + (msg ? ' — ' + msg : '');
+  el.style.color = s.color;
+}
+function todayStr() { return new Date().toISOString().slice(0,10); }
+
+function fmtDate(s) {
+  const d = new Date(s+'T00:00:00');
+  return d.getDate().toString().padStart(2,'0')+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getFullYear();
+}
+
+function calcStreak() {
+  const doneDates = log.filter(e=>e.status==='done').map(e=>e.date);
+  let streak=0, cur=new Date(todayStr()+'T00:00:00');
+  for(let i=0;i<90;i++){
+    const s=cur.toISOString().slice(0,10);
+    if(doneDates.includes(s)){ streak++; cur.setDate(cur.getDate()-1); }
+    else if(i===0){ cur.setDate(cur.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  renderAll();
+}
+
+/* ── slot management ── */
+function addSlot() {
+  if(slots.length >= 3) return;
+  slots.push(null);
+  renderSlots();
+}
+
+function removeSlot(i) {
+  slots.splice(i,1);
+  if(slots.length===0) slots=[null];
+  renderSlots();
+}
+
+function pickJuz(slotIdx, juz) {
+  // deselect same juz in any other slot
+  slots = slots.map((v,i) => (i!==slotIdx && v===juz) ? null : v);
+  // toggle this slot
+  slots[slotIdx] = (slots[slotIdx]===juz) ? null : juz;
+  renderSlots();
+}
+
+function renderSlots() {
+  const taken = slots.filter(v=>v!==null);
+  const container = document.getElementById('juz-slots');
+
+  let html='';
+  slots.forEach((sel, si) => {
+    html += `<div class="juz-slot">
+      <span class="slot-label">${si+1}</span>
+      <div class="juz-chips">`;
+    ALL_JUZ.forEach(j => {
+      const isSelected = sel===j;
+      const isTaken = !isSelected && taken.includes(j);
+      let cls='juz-chip';
+      if(isSelected) cls+=' selected';
+      else if(isTaken) cls+=' taken';
+      html+=`<button class="${cls}" onclick="pickJuz(${si},${j})">J${j}</button>`;
+    });
+    html+=`</div>`;
+    if(slots.length>1){
+      html+=`<button class="slot-remove" onclick="removeSlot(${si})" title="Remove slot">×</button>`;
+    }
+    html+=`</div>`;
+  });
+
+  container.innerHTML = html;
+
+  document.getElementById('add-slot-btn').style.display = slots.length>=3 ? 'none' : 'inline-block';
+
+  // summary — show both full juz and half readings
+  const filled = slots.filter(v=>v!==null);
+  const allSelected = [...filled, ...halfReadings];
+  const sumEl = document.getElementById('today-summary');
+  if(allSelected.length>0){
+    sumEl.innerHTML = 'Reading: ' + allSelected.map(r=>`<span class="sum-tag">${fmtEntry(r)}</span>`).join('');
+  } else {
+    sumEl.textContent = '';
+  }
+}
+
+/* ── today logging ── */
+function logToday(status) {
+  const d = todayStr();
+  const fullJuz = slots.filter(v=>v!==null);
+  const juzList = [...fullJuz, ...halfReadings];   // combine full + half
+
+  if(status==='done' && juzList.length===0){
+    showToast('Select at least 1 juz or ½ juz first');
+    return;
+  }
+
+  const existing = log.findIndex(e=>e.date===d);
+  if(existing>=0) log.splice(existing,1);
+  log.push({ date:d, status, juzList: status==='done' ? juzList : [] });
+  save();
+
+  slots=[null];
+  halfReadings=[];
+  halfSlotJuz=null; halfSlotHalf=null;
+  renderSlots();
+  renderHalfPicker();
+  renderAll();
+
+  if(status==='done'){
+    showToast(juzList.map(fmtEntry).join(' + ') + ' — baarakAllahu feek ✓');
+  } else {
+    showToast('Day marked as skipped');
+  }
+}
+
+/* ── half-juz picker (today) ── */
+function renderHalfPicker() {
+  const grid = document.getElementById('half-juz-grid');
+  if (!grid) return;
+  let html = '';
+  for (let j = 1; j <= 30; j++) {
+    const sel = halfSlotJuz === j;
+    html += `<button class="half-juz-chip${sel?' hsel':''}" onclick="pickHalfJuz(${j})">J${j}</button>`;
+  }
+  grid.innerHTML = html;
+
+  ['a','b'].forEach(h => {
+    const btn = document.getElementById('ht-'+h);
+    if (btn) { btn.className = 'half-toggle' + (halfSlotHalf===h?' hsel':''); }
+  });
+
+  const addBtn = document.getElementById('half-add-btn');
+  if (addBtn) addBtn.disabled = !(halfSlotJuz && halfSlotHalf);
+
+  const row = document.getElementById('half-readings-row');
+  if (row) {
+    row.innerHTML = halfReadings.map((r, i) =>
+      `<span class="half-tag">${fmtEntry(r)}<button class="half-tag-remove" onclick="removeHalfReading(${i})">×</button></span>`
+    ).join('');
+  }
+}
+
+function pickHalfJuz(j) {
+  halfSlotJuz = (halfSlotJuz === j) ? null : j;
+  renderHalfPicker();
+}
+
+function pickHalf(h) {
+  halfSlotHalf = (halfSlotHalf === h) ? null : h;
+  renderHalfPicker();
+}
+
+function addHalfEntry() {
+  if (!halfSlotJuz || !halfSlotHalf) return;
+  const key = String(halfSlotJuz) + halfSlotHalf;
+  if (!halfReadings.includes(key)) halfReadings.push(key);
+  halfSlotJuz = null; halfSlotHalf = null;
+  renderHalfPicker();
+  // refresh summary
+  const filled = slots.filter(v=>v!==null);
+  const allSelected = [...filled, ...halfReadings];
+  const sumEl = document.getElementById('today-summary');
+  if (allSelected.length > 0) {
+    sumEl.innerHTML = 'Reading: ' + allSelected.map(r=>`<span class="sum-tag">${fmtEntry(r)}</span>`).join('');
+  }
+}
+
+function removeHalfReading(i) {
+  halfReadings.splice(i, 1);
+  renderHalfPicker();
+  const filled = slots.filter(v=>v!==null);
+  const allSelected = [...filled, ...halfReadings];
+  const sumEl = document.getElementById('today-summary');
+  sumEl.innerHTML = allSelected.length
+    ? 'Reading: ' + allSelected.map(r=>`<span class="sum-tag">${fmtEntry(r)}</span>`).join('')
+    : '';
+}
+
+/* ── half-juz picker (manual entry, log page) ── */
+function buildManualHalfChips() {
+  const grid = document.getElementById('manual-half-chips');
+  if (!grid) return;
+  let html = '';
+  for (let j = 1; j <= 30; j++) {
+    const sel = manualHalfJuz === j;
+    html += `<button class="manual-half-chip${sel?' hsel':''}" onclick="pickManualHalfJuz(${j})">Juz ${j}</button>`;
+  }
+  grid.innerHTML = html;
+
+  ['a','b'].forEach(h => {
+    const btn = document.getElementById('mht-'+h);
+    if (btn) { btn.className = 'half-toggle-light' + (manualHalfHalf===h?' hsel':''); }
+  });
+
+  const addBtn = document.getElementById('manual-half-add-btn');
+  if (addBtn) addBtn.disabled = !(manualHalfJuz && manualHalfHalf);
+
+  const tagsEl = document.getElementById('manual-half-tags');
+  if (tagsEl) {
+    tagsEl.innerHTML = manualHalfReadings.map((r, i) =>
+      `<span class="manual-half-tag">${fmtEntry(r)}<button class="manual-half-tag-remove" onclick="removeManualHalf(${i})">×</button></span>`
+    ).join('');
+  }
+}
+
+function pickManualHalfJuz(j) {
+  manualHalfJuz = (manualHalfJuz === j) ? null : j;
+  buildManualHalfChips();
+}
+
+function pickManualHalf(h) {
+  manualHalfHalf = (manualHalfHalf === h) ? null : h;
+  buildManualHalfChips();
+}
+
+function addManualHalfEntry() {
+  if (!manualHalfJuz || !manualHalfHalf) return;
+  const key = String(manualHalfJuz) + manualHalfHalf;
+  if (!manualHalfReadings.includes(key)) manualHalfReadings.push(key);
+  manualHalfJuz = null; manualHalfHalf = null;
+  buildManualHalfChips();
+}
+
+function removeManualHalf(i) {
+  manualHalfReadings.splice(i, 1);
+  buildManualHalfChips();
+}
+
+
+let manualSel = [];
+
+function buildManualChips() {
+  const grid = document.getElementById('manual-chips');
+  grid.innerHTML = '';
+  manualSel = [];
+  ALL_JUZ.forEach(j => {
+    const btn=document.createElement('button');
+    btn.className='manual-chip';
+    btn.textContent='Juz '+j;
+    btn.onclick=()=>{
+      if(manualSel.includes(j)){
+        manualSel=manualSel.filter(x=>x!==j);
+        btn.classList.remove('selected');
+      } else {
+        if(manualSel.length>=3){showToast('Max 3 full juz per day');return;}
+        manualSel.push(j);
+        btn.classList.add('selected');
+      }
+    };
+    grid.appendChild(btn);
+  });
+  buildManualHalfChips();
+}
+
+function toggleManualJuzVisibility() {
+  const status=document.getElementById('manual-status').value;
+  const hide = status==='skipped';
+  document.getElementById('manual-juz-section').style.display=hide?'none':'block';
+  document.getElementById('manual-half-section').style.display=hide?'none':'block';
+}
+
+function addManualEntry() {
+  const d=document.getElementById('manual-date').value;
+  const status=document.getElementById('manual-status').value;
+  if(!d){showToast('Please pick a date');return;}
+  const combined = [...manualSel, ...manualHalfReadings];
+  if(status==='done' && combined.length===0){showToast('Select at least 1 juz or ½ juz');return;}
+
+  const idx=log.findIndex(e=>e.date===d);
+  if(idx>=0) log.splice(idx,1);
+  log.push({date:d, status, juzList: status==='done' ? combined : []});
+  save();
+
+  manualSel=[];
+  manualHalfReadings=[]; manualHalfJuz=null; manualHalfHalf=null;
+  document.querySelectorAll('.manual-chip').forEach(b=>b.classList.remove('selected'));
+  renderAll();
+  showToast('Entry added');
+}
+
+function removeEntry(i) {
+  log.splice(i,1); save(); renderAll(); showToast('Entry removed');
+}
+
+/* ── juz management ── */
+function addJuz() {
+  const input = document.getElementById('new-juz-input');
+  const val = parseInt(input.value, 10);
+  if (!val || val < 1 || val > 30) { showToast('Enter a number between 1 and 30'); return; }
+  if (ALL_JUZ.includes(val)) { showToast('Juz ' + val + ' is already in your pool'); return; }
+  ALL_JUZ.push(val);
+  ALL_JUZ.sort((a,b) => a-b);
+  saveJuz();
+  input.value = '';
+  renderAll();
+  showToast('Juz ' + val + ' added ✓');
+}
+
+function removeJuz(j) {
+  if (ALL_JUZ.length <= 1) { showToast('You need at least 1 juz'); return; }
+  ALL_JUZ = ALL_JUZ.filter(x => x !== j);
+  // clear any slots that had this juz
+  slots = slots.map(v => v === j ? null : v);
+  if (slots.length === 0) slots = [null];
+  saveJuz();
+  renderSlots();
+  renderAll();
+  showToast('Juz ' + j + ' removed');
+}
+
+function renderSettings() {
+  const grid = document.getElementById('juz-manage-grid');
+  if (!grid) return;
+  grid.innerHTML = ALL_JUZ.map(j =>
+    `<div class="juz-manage-chip">
+      Juz ${j}
+      <button class="juz-manage-remove" onclick="removeJuz(${j})" title="Remove">×</button>
+    </div>`
+  ).join('');
+}
+
+/* ── render ── */
+function renderToday() {
+  const d=todayStr();
+  const dow=new Date(d+'T00:00:00');
+  document.getElementById('today-date-lbl').textContent=DAYS[dow.getDay()]+', '+fmtDate(d);
+}
+
+function renderWeek() {
+  const today=new Date(todayStr()+'T00:00:00');
+  let html='';
+  for(let i=-3;i<=3;i++){
+    const d=new Date(today); d.setDate(d.getDate()+i);
+    const ds=d.toISOString().slice(0,10);
+    const schJuz=scheduledJuz(ds);
+    const entry=log.find(e=>e.date===ds);
+
+    let cls='wday';
+    if(i===0) cls+=' today-day';
+    else if(entry) cls+=' '+(entry.status==='done'?'done-day':'skip-day');
+
+    let juzLabel, countBadge='';
+    if(entry && entry.status==='done' && entry.juzList && entry.juzList.length>0){
+      juzLabel=entry.juzList.map(r=>fmtEntryShort(r)).join(', ');
+      if(entry.juzList.length>1) countBadge=`<div class="wday-count">${entry.juzList.length} reads</div>`;
+    } else {
+      juzLabel = schJuz.map(j => 'J' + j).join(', ');
+      if (schJuz.length > 1) countBadge = `<div class="wday-count">${schJuz.length} juz</div>`;
+    }
+
+    html+=`<div class="${cls}">
+      <div class="wday-name">${DAYS[d.getDay()]}</div>
+      <div class="wday-juz">${juzLabel}</div>
+      ${countBadge}
+    </div>`;
+  }
+  document.getElementById('week-strip').innerHTML=html;
+}
+
+function renderStats() {
+  document.getElementById('stat-done').textContent=log.filter(e=>e.status==='done').length;
+  document.getElementById('stat-skipped').textContent=log.filter(e=>e.status==='skipped').length;
+  document.getElementById('stat-streak').textContent=calcStreak();
+}
+
+function renderLog() {
+  buildManualChips();
+  if(!document.getElementById('manual-date').value)
+    document.getElementById('manual-date').value=todayStr();
+
+  const sorted=[...log].sort((a,b)=>b.date.localeCompare(a.date));
+  if(!sorted.length){
+    document.getElementById('log-list').innerHTML='<div class="empty">No entries yet — log your first session on the Today tab.</div>';
+    return;
+  }
+  let html='';
+  sorted.slice(0,50).forEach(e=>{
+    const origIdx=log.indexOf(e);
+    const tags=(e.juzList&&e.juzList.length>0)
+      ? e.juzList.map(r=>{
+          const isHalf = typeof r === 'string';
+          return `<span class="log-juz-tag${isHalf?' half':''}">${fmtEntry(r)}</span>`;
+        }).join('')
+      : '';
+    html+=`<div class="log-item">
+      <div class="log-top">
+        <div class="log-dot ${e.status}"></div>
+        <div class="log-date">${fmtDate(e.date)}</div>
+        <span class="log-badge ${e.status}">${e.status==='done'?'Done':'Skipped'}</span>
+        <button class="log-remove" onclick="removeEntry(${origIdx})">✕</button>
+      </div>
+      ${tags?`<div class="log-juz-row">${tags}</div>`:''}
+    </div>`;
+  });
+  document.getElementById('log-list').innerHTML=html;
+}
+
+function renderRotation() {
+  const rotation = buildRotation();
+  const jpd = getJuzPerDay();
+  const todayCycle = cycleIdx(todayStr());
+  const totalJuz = ALL_JUZ.length;
+  const cycleDays = rotation.length;
+
+  document.getElementById('rot-hint').textContent =
+    `${totalJuz} active juz · ${jpd} juz/day · ${cycleDays}-day cycle · today highlighted`;
+
+  let html = '<tr><th>Day</th><th>Juz assigned</th><th>Cycle position</th></tr>';
+  rotation.forEach((juzArr, i) => {
+    const isCur = i === todayCycle;
+    const juzCells = juzArr.map(j => `<span class="rot-juz-badge">Juz ${j}</span>`).join('');
+    const start = i * jpd + 1;
+    const end = Math.min(start + jpd - 1, totalJuz);
+    const posLabel = start === end ? `#${start} of ${totalJuz}` : `#${start}–${end} of ${totalJuz}`;
+    html += `<tr class="${isCur ? 'today-row' : ''}">
+      <td><span class="day-pill${isCur ? ' today-pill' : ''}">${i + 1}</span></td>
+      <td>${juzCells}</td>
+      <td style="font-size:11px;color:var(--text3)">${posLabel}</td>
+    </tr>`;
+  });
+  document.getElementById('rot-table').innerHTML = html;
+}
+
+function calcMonthlyJuzCount(j, mp) {
+  // Count full juz entries for this juz number
+  const fullCount = log.filter(e =>
+    e.date.startsWith(mp) && e.status === 'done' && e.juzList &&
+    e.juzList.some(r => r === j)
+  ).length;
+
+  // Count how many sessions recorded the 1st half (ja) and 2nd half (jb)
+  let countA = 0, countB = 0;
+  log.filter(e => e.date.startsWith(mp) && e.status === 'done' && e.juzList).forEach(e => {
+    if (e.juzList.some(r => r === String(j) + 'a')) countA++;
+    if (e.juzList.some(r => r === String(j) + 'b')) countB++;
+  });
+
+  // Each a+b pair = 1 complete juz; leftover unmatched halves = 0.5 each
+  const paired = Math.min(countA, countB);
+  const unpaired = Math.abs(countA - countB);
+  return fullCount + paired + unpaired * 0.5;
+}
+
+function fmtJuzCount(total) {
+  if (total === 0) return '0';
+  if (total % 1 === 0) return String(total);
+  return Math.floor(total) + '½';
+}
+
+function renderMonthly() {
+  const now = new Date();
+  document.getElementById('month-label').textContent = now.toLocaleString('default', {month:'long', year:'numeric'});
+  const mp = now.toISOString().slice(0, 7);
+  let html = '';
+  ALL_JUZ.forEach(j => {
+    const total = calcMonthlyJuzCount(j, mp);
+    html += `<div class="month-juz">
+      <div class="month-juz-name">Juz ${j}</div>
+      <div class="month-count ${total > 0 ? 'has-reads' : ''}">${fmtJuzCount(total)}</div>
+    </div>`;
+  });
+  document.getElementById('month-grid').innerHTML = html;
+}
+
+function renderExport() {
+  const now=fmtDate(todayStr());
+  const done=log.filter(e=>e.status==='done').length;
+  const skipped=log.filter(e=>e.status==='skipped').length;
+  const streak=calcStreak();
+  const now2=new Date();
+  const mp=now2.toISOString().slice(0,7);
+  const monthStr=now2.toLocaleString('default',{month:'long',year:'numeric'});
+
+  const sorted=[...log].sort((a,b)=>a.date.localeCompare(b.date));
+  const rows=sorted.slice(-14).reverse().map(e=>{
+    const jStr=(e.juzList&&e.juzList.length>0)?e.juzList.map(r=>fmtEntry(r)).join(', '):'—';
+    return `| ${fmtDate(e.date)} | ${jStr} | ${e.status==='done'?'Done ✓':'Skipped ✗'} |`;
+  }).join('\n')||'| — | — | — |';
+
+  const monthRows=ALL_JUZ.map(j=>{
+    const total = calcMonthlyJuzCount(j, mp);
+    return `| Juz ${j} | ${total>0?'Yes':'—'} | ${fmtJuzCount(total)} |`;
+  }).join('\n');
+
+  document.getElementById('export-box').textContent=
+`## Daily Manzil Tracker
+> Last updated: ${now}
+
+### Summary
+| Metric | Value |
+|--------|-------|
+| Days done | ${done} |
+| Days skipped | ${skipped} |
+| Current streak | ${streak} days |
+
+### Recent Sessions (last 14)
+| Date | Juz read | Status |
+|------|----------|--------|
+${rows}
+
+### Monthly Overview — ${monthStr}
+| Juz | Read this month? | Times read |
+|-----|-----------------|------------|
+${monthRows}`;
+}
+
+function copyExport() {
+  navigator.clipboard.writeText(document.getElementById('export-box').textContent)
+    .then(()=>showToast('Copied to clipboard'));
+}
+
+/* ── backup & import ── */
+function downloadBackup() {
+  const payload = {
+    version: 1,
+    exported: new Date().toISOString(),
+    log: log,
+    juz: ALL_JUZ
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'manzil-backup-' + todayStr() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Backup downloaded ✓');
+}
+
+function handleImport(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const statusEl = document.getElementById('import-status');
+    statusEl.style.display = 'block';
+    try {
+      const data = JSON.parse(e.target.result);
+
+      // validate
+      if (!Array.isArray(data.log)) throw new Error('Invalid file — no log array found.');
+
+      const merge = document.getElementById('merge-mode').checked;
+      let added = 0, skipped = 0;
+
+      if (merge) {
+        // merge: imported entries win on same date
+        data.log.forEach(entry => {
+          if (!entry.date || !entry.status) return;
+          const idx = log.findIndex(x => x.date === entry.date);
+          if (idx >= 0) { log.splice(idx, 1); skipped++; }
+          log.push(entry);
+          added++;
+        });
+      } else {
+        log = data.log.filter(e => e.date && e.status);
+        added = log.length;
+      }
+
+      // merge juz pool too if present
+      if (Array.isArray(data.juz)) {
+        data.juz.forEach(j => { if (!ALL_JUZ.includes(j)) ALL_JUZ.push(j); });
+        ALL_JUZ.sort((a,b) => a-b);
+        saveJuz();
+      }
+
+      save();
+      renderSlots();
+      renderAll();
+
+      const mergeNote = merge ? ` (${skipped} updated, rest merged)` : '';
+      statusEl.textContent = `✓ Imported ${added} entries${mergeNote}.`;
+      statusEl.style.color = 'var(--green)';
+      showToast('Import successful ✓');
+    } catch(err) {
+      const statusEl = document.getElementById('import-status');
+      statusEl.textContent = '✕ ' + err.message;
+      statusEl.style.color = 'var(--red)';
+    }
+    // reset file input so the same file can be re-imported if needed
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function renderAll() {
+  renderToday(); renderWeek(); renderStats();
+  renderLog(); renderRotation(); renderMonthly(); renderExport(); renderSettings();
+}
+
+renderSlots();
+renderHalfPicker();
+renderAll();
+
+// Show sync config warning on load if endpoint not set
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('sync-status');
+  if (el && !SYNC_ENDPOINT) {
+    el.textContent = '⚠ Sheet sync not configured — see setup guide';
+    el.style.color = 'var(--text3)';
+  }
+});
+</script>
+<div id="toast"></div>
+</body>
+</html>
