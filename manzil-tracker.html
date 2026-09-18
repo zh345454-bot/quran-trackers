@@ -553,6 +553,89 @@
     font-size: 11px; font-weight: 500; text-transform: uppercase;
     letter-spacing: 0.07em; color: var(--gold); margin-bottom: 5px; margin-top: 10px;
   }
+
+  /* ── Qur'an verse fetch + bank ── */
+  .verse-search-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .verse-dropdowns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .verse-dropdowns select {
+    flex: 1; min-width: 90px; padding: 9px 10px;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    background: var(--surface2); color: var(--text);
+  }
+  .btn-fetch-verse {
+    padding: 10px; border-radius: 8px; border: none; cursor: pointer;
+    background: var(--gold); color: #fff; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+  }
+  .btn-fetch-verse:disabled { opacity: 0.55; cursor: default; }
+
+  .verse-fetch-result { margin-top: 12px; }
+  .verse-ref-tag {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    background: var(--gold-light); color: var(--gold); border: 1px solid var(--gold-border);
+    border-radius: 6px; padding: 3px 10px; margin-bottom: 8px;
+  }
+  .verse-arabic-box {
+    width: 100%; min-height: 90px; font-family: 'Amiri', serif; font-size: 21px;
+    line-height: 2; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface); color: var(--text); resize: vertical;
+  }
+  .verse-arabic-display {
+    font-family: 'Amiri', serif; font-size: 20px; line-height: 2.1;
+    color: var(--text); direction: rtl; text-align: right; margin-bottom: 6px;
+  }
+  .verse-arabic-display strong { color: var(--gold); font-weight: 700; }
+  .verse-actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .btn-bold {
+    padding: 6px 13px; border-radius: 7px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--gold-border); background: var(--gold-light); color: var(--gold);
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+  }
+  .btn-bold:hover { background: var(--gold); color: #fff; }
+  .btn-save-verse {
+    padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+    background: var(--green); color: #fff; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+  }
+  .btn-save-verse:disabled { opacity: 0.55; cursor: default; }
+
+  .verse-bank-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .verse-bank-toolbar input, .verse-bank-toolbar select {
+    padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    background: var(--surface2); color: var(--text);
+  }
+  .verse-bank-toolbar input { flex: 2; min-width: 140px; }
+  .verse-bank-toolbar select { flex: 1; min-width: 110px; }
+
+  .verse-group-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--text3); margin: 14px 0 6px;
+  }
+  .verse-group-label:first-child { margin-top: 0; }
+
+  .verse-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 10px;
+  }
+  .verse-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+  .verse-star-btn {
+    background: none; border: none; cursor: pointer; font-size: 17px; line-height: 1;
+    color: var(--text3); padding: 0 2px; flex-shrink: 0;
+  }
+  .verse-star-btn.on { color: var(--gold); }
+  .verse-card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .verse-card-btn {
+    padding: 5px 11px; border-radius: 6px; font-size: 11.5px; font-weight: 500;
+    border: 1px solid var(--border); background: var(--surface2); color: var(--text2);
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+  }
+  .verse-card-btn:hover { border-color: var(--gold-border); color: var(--gold); }
+  .verse-card-btn.danger:hover { border-color: #d99; color: var(--red); }
+  .verse-note { font-size: 12px; color: var(--text3); margin-top: 6px; font-style: italic; }
+  .verse-sync-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .verse-sync-status { font-size: 11px; color: var(--text3); margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -574,6 +657,7 @@
   <div class="nav-inner">
     <button class="nav-tab active" onclick="showPage('today', this)">Today</button>
     <button class="nav-tab" onclick="showPage('log', this)">Log</button>
+    <button class="nav-tab" onclick="showPage('quran', this)">Qur'an</button>
     <button class="nav-tab" onclick="showPage('rotation', this)">Rotation</button>
     <button class="nav-tab" onclick="showPage('monthly', this)">Monthly</button>
     <button class="nav-tab" onclick="showPage('export', this)">Export</button>
@@ -669,6 +753,49 @@
     <div class="card">
       <div class="card-label">Session history</div>
       <div id="log-list"></div>
+    </div>
+  </div>
+
+  <!-- QUR'AN -->
+  <div class="page" id="page-quran">
+    <div class="card">
+      <div class="card-label">Fetch a verse</div>
+      <p class="section-hint">Pick a Juz, then a Surah within it, then the Ayah — the dropdowns narrow automatically so you can only land on a real reference.</p>
+      <div class="verse-search-row">
+        <div class="verse-dropdowns">
+          <select id="vf-juz" onchange="onVerseJuzChange()"></select>
+          <select id="vf-surah" onchange="onVerseSurahChange()"></select>
+          <select id="vf-ayah"></select>
+        </div>
+        <button class="btn-fetch-verse" id="vf-fetch-btn" onclick="fetchVerse()">🔍 Search &amp; fetch verse</button>
+      </div>
+      <div class="verse-fetch-result" id="vf-result"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Your verse bank</div>
+      <p class="section-hint">Saved verses, always kept in Qur'an order (Surah → Ayah) — a new verse slots into its correct place automatically.</p>
+      <div class="verse-bank-toolbar">
+        <input type="text" id="vb-search" placeholder="Search reference or Arabic" oninput="renderVerseBank()">
+        <select id="vb-group" onchange="renderVerseBank()">
+          <option value="">Qur'an order (no grouping)</option>
+          <option value="surah">Group by Surah</option>
+          <option value="juz">Group by Juz</option>
+          <option value="starred">Starred only</option>
+        </select>
+      </div>
+      <div id="verse-bank-list"></div>
+
+      <div class="verse-sync-row">
+        <button class="btn-add-juz" onclick="pushVersesToSheet()">⬆ Sync bank to Sheet</button>
+        <button class="btn-add-juz" onclick="restoreVersesFromSheet()">⬇ Restore from Sheet</button>
+      </div>
+      <div class="verse-sync-status" id="verse-sync-status"></div>
+
+      <div class="settings-note" style="margin-top:12px;">
+        <div style="margin-bottom:6px;"><strong>Verse Sync Web App URL</strong> — paste the deployed Apps Script URL from <code>manzil-quran-sync.gs</code> (see the setup notes at the top of that file).</div>
+        <input type="text" id="vb-endpoint" placeholder="https://script.google.com/macros/s/.../exec" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:12.5px; background:var(--surface); color:var(--text);" onchange="saveVerseEndpoint()">
+      </div>
     </div>
   </div>
 
@@ -1508,7 +1635,380 @@ function handleImport(input) {
 function renderAll() {
   renderToday(); renderWeek(); renderStats();
   renderLog(); renderRotation(); renderMonthly(); renderExport(); renderSettings();
+  if(typeof renderVerseBank === 'function') renderVerseBank();
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Qur'an verse fetch + bank
+   ══════════════════════════════════════════════════════════════════════ */
+
+function uid_(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function escapeHtml_(s){
+  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+// Bold is stored as plain **word** markers right in the Arabic text, not as
+// separate rich text — a plain string that round-trips through localStorage,
+// the Sheet sync, and JSON backups with zero schema changes. mdToHtml_ is the
+// only place it becomes <strong> for display; the stored value stays plain.
+function mdToHtml_(s){
+  return escapeHtml_(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+}
+function stripBold_(s){
+  return (s||'').replace(/\*\*(.+?)\*\*/g, '$1');
+}
+// Wires a "Bold" button to a textarea: wraps the current selection in
+// **...**, or unwraps it if the selection is already exactly a bolded span.
+function wireBoldButton_(boldBtnId, textareaId){
+  const btn = document.getElementById(boldBtnId);
+  const ta = document.getElementById(textareaId);
+  if(!btn || !ta) return;
+  btn.addEventListener('click', ()=>{
+    const start = ta.selectionStart, end = ta.selectionEnd;
+    if(start === end){
+      ta.focus();
+      const orig = btn.textContent;
+      btn.textContent = 'Select text first';
+      setTimeout(()=>{ btn.textContent = orig; }, 1000);
+      return;
+    }
+    const val = ta.value;
+    const selected = val.slice(start, end);
+    let newVal, newStart, newEnd;
+    if(selected.startsWith('**') && selected.endsWith('**') && selected.length >= 4){
+      const inner = selected.slice(2, -2);
+      newVal = val.slice(0,start) + inner + val.slice(end);
+      newStart = start; newEnd = start + inner.length;
+    } else {
+      newVal = val.slice(0,start) + '**' + selected + '**' + val.slice(end);
+      newStart = start; newEnd = end + 4;
+    }
+    ta.value = newVal;
+    ta.focus();
+    ta.setSelectionRange(newStart, newEnd);
+  });
+}
+
+// Display names, 1-indexed (index 0 unused).
+const SURAH_DISPLAY_NAMES = [null,
+  "Al-Fatihah","Al-Baqarah","Ali 'Imran","An-Nisa","Al-Ma'idah","Al-An'am","Al-A'raf","Al-Anfal",
+  "At-Tawbah","Yunus","Hud","Yusuf","Ar-Ra'd","Ibrahim","Al-Hijr","An-Nahl",
+  "Al-Isra","Al-Kahf","Maryam","Taha","Al-Anbya","Al-Hajj","Al-Mu'minun","An-Nur",
+  "Al-Furqan","Ash-Shu'ara","An-Naml","Al-Qasas","Al-'Ankabut","Ar-Rum","Luqman",
+  "As-Sajdah","Al-Ahzab","Saba","Fatir","Ya-Sin","As-Saffat","Sad","Az-Zumar",
+  "Ghafir","Fussilat","Ash-Shura","Az-Zukhruf","Ad-Dukhan","Al-Jathiyah",
+  "Al-Ahqaf","Muhammad","Al-Fath","Al-Hujurat","Qaf","Adh-Dhariyat","At-Tur",
+  "An-Najm","Al-Qamar","Ar-Rahman","Al-Waqi'ah","Al-Hadid","Al-Mujadilah","Al-Hashr",
+  "Al-Mumtahanah","As-Saff","Al-Jumu'ah","Al-Munafiqun","At-Taghabun","At-Talaq",
+  "At-Tahrim","Al-Mulk","Al-Qalam","Al-Haqqah","Al-Ma'arij","Nuh","Al-Jinn",
+  "Al-Muzzammil","Al-Muddaththir","Al-Qiyamah","Al-Insan","Al-Mursalat","An-Naba",
+  "An-Nazi'at","'Abasa","At-Takwir","Al-Infitar","Al-Mutaffifin","Al-Inshiqaq",
+  "Al-Buruj","At-Tariq","Al-A'la","Al-Ghashiyah","Al-Fajr","Al-Balad","Ash-Shams",
+  "Al-Layl","Ad-Duha","Ash-Sharh","At-Tin","Al-'Alaq","Al-Qadr","Al-Bayyinah",
+  "Az-Zalzalah","Al-'Adiyat","Al-Qari'ah","At-Takathur","Al-'Asr","Al-Humazah",
+  "Al-Fil","Quraysh","Al-Ma'un","Al-Kawthar","Al-Kafirun","An-Nasr","Al-Masad",
+  "Al-Ikhlas","Al-Falaq","An-Nas"
+];
+// Canonical ayah count per surah (Hafs/Kufic numbering, 6,236 total), 1-indexed.
+const SURAH_AYAH_COUNTS = [null,
+  7,286,200,176,120,165,206,75,129,109,
+  123,111,43,52,99,128,111,110,98,135,
+  112,78,118,64,77,227,93,88,69,60,
+  34,30,73,54,45,83,182,88,75,85,
+  54,53,89,59,37,35,38,29,18,45,
+  60,49,62,55,78,96,29,22,24,13,
+  14,11,11,18,12,12,30,52,52,44,
+  28,28,20,56,40,31,50,40,46,42,
+  29,19,36,25,22,17,19,26,30,20,
+  15,21,11,8,8,19,5,8,8,11,
+  11,8,3,9,5,4,7,3,6,3,
+  5,4,5,6
+];
+// Standard 30-juz division, each juz's starting {sura, ayah}. Same
+// verified table used by the Bilingual Phrase Trainer's Qur'an tab.
+const JUZ_STARTS = [
+  {juz:1,sura:1,ayah:1}, {juz:2,sura:2,ayah:142}, {juz:3,sura:2,ayah:253}, {juz:4,sura:3,ayah:93},
+  {juz:5,sura:4,ayah:24}, {juz:6,sura:4,ayah:148}, {juz:7,sura:5,ayah:82}, {juz:8,sura:6,ayah:111},
+  {juz:9,sura:7,ayah:88}, {juz:10,sura:8,ayah:41}, {juz:11,sura:9,ayah:93}, {juz:12,sura:11,ayah:6},
+  {juz:13,sura:12,ayah:53}, {juz:14,sura:15,ayah:1}, {juz:15,sura:17,ayah:1}, {juz:16,sura:18,ayah:75},
+  {juz:17,sura:21,ayah:1}, {juz:18,sura:23,ayah:1}, {juz:19,sura:25,ayah:21}, {juz:20,sura:27,ayah:56},
+  {juz:21,sura:29,ayah:46}, {juz:22,sura:33,ayah:31}, {juz:23,sura:36,ayah:28}, {juz:24,sura:39,ayah:32},
+  {juz:25,sura:41,ayah:47}, {juz:26,sura:46,ayah:1}, {juz:27,sura:51,ayah:31}, {juz:28,sura:58,ayah:1},
+  {juz:29,sura:67,ayah:1}, {juz:30,sura:78,ayah:1}
+];
+function compareSuraAyah_(a, b){
+  return a.sura !== b.sura ? a.sura - b.sura : a.ayah - b.ayah;
+}
+function getJuzForVerse_(sura, ayah){
+  const v = { sura, ayah };
+  let found = 1;
+  for(const start of JUZ_STARTS){
+    if(compareSuraAyah_(start, v) <= 0) found = start.juz; else break;
+  }
+  return found;
+}
+// For each juz, the list of {sura, from, to} ayah ranges it actually
+// covers — a surah that straddles a juz boundary (e.g. Al-Baqarah across
+// Juz 1-3) only contributes the ayahs that fall inside that particular
+// juz, so the Surah/Ayah dropdowns never offer a reference outside the
+// selected juz.
+function computeJuzSurahRanges_(){
+  const map = {};
+  for(let i=0;i<JUZ_STARTS.length;i++){
+    const start = JUZ_STARTS[i];
+    const end = (i+1 < JUZ_STARTS.length) ? JUZ_STARTS[i+1] : { sura:114, ayah: SURAH_AYAH_COUNTS[114]+1 };
+    const ranges = [];
+    for(let sura=start.sura; sura<=end.sura; sura++){
+      const from = (sura===start.sura) ? start.ayah : 1;
+      const to = (sura===end.sura) ? (end.ayah-1) : SURAH_AYAH_COUNTS[sura];
+      if(to >= from) ranges.push({ sura, from, to });
+    }
+    map[start.juz] = ranges;
+  }
+  return map;
+}
+const JUZ_SURAH_RANGES = computeJuzSurahRanges_();
+
+function populateJuzSelect_(){
+  const sel = document.getElementById('vf-juz');
+  sel.innerHTML = JUZ_STARTS.map(j => `<option value="${j.juz}">Juz ${j.juz}</option>`).join('');
+}
+function onVerseJuzChange(){
+  const juz = Number(document.getElementById('vf-juz').value);
+  const ranges = JUZ_SURAH_RANGES[juz] || [];
+  const sel = document.getElementById('vf-surah');
+  sel.innerHTML = ranges.map(r => `<option value="${r.sura}">${r.sura}. ${SURAH_DISPLAY_NAMES[r.sura]}</option>`).join('');
+  onVerseSurahChange();
+}
+function onVerseSurahChange(){
+  const juz = Number(document.getElementById('vf-juz').value);
+  const sura = Number(document.getElementById('vf-surah').value);
+  const ranges = JUZ_SURAH_RANGES[juz] || [];
+  const range = ranges.find(r => r.sura === sura);
+  const sel = document.getElementById('vf-ayah');
+  if(!range){ sel.innerHTML = ''; return; }
+  let opts = '';
+  for(let a=range.from; a<=range.to; a++) opts += `<option value="${a}">${a}</option>`;
+  sel.innerHTML = opts;
+}
+
+/* ── verse bank state ── */
+let verses = JSON.parse(localStorage.getItem('manzil-verses-v1') || '[]');
+function saveVerses(){
+  localStorage.setItem('manzil-verses-v1', JSON.stringify(verses));
+  scheduleVerseSyncDebounced();
+}
+
+/* ── fetch a verse's Arabic text via the Apps Script proxy ── */
+function verseEndpoint_(){ return localStorage.getItem('manzil-verse-endpoint') || ''; }
+function saveVerseEndpoint(){
+  localStorage.setItem('manzil-verse-endpoint', document.getElementById('vb-endpoint').value.trim());
+  showToast('Verse sync URL saved');
+}
+async function fetchVerse(){
+  const sura = Number(document.getElementById('vf-surah').value);
+  const ayah = Number(document.getElementById('vf-ayah').value);
+  const box = document.getElementById('vf-result');
+  const endpoint = verseEndpoint_();
+  if(!endpoint){
+    box.innerHTML = '<div class="import-status" style="display:block;color:var(--red)">Add your Verse Sync Web App URL below first (deploy manzil-quran-sync.gs, then paste the URL).</div>';
+    return;
+  }
+  const btn = document.getElementById('vf-fetch-btn');
+  btn.disabled = true;
+  box.innerHTML = '<div class="import-status" style="display:block">Fetching the verse text…</div>';
+  try{
+    const res = await fetch(endpoint + '?type=quran_verse&sura=' + sura + '&ayah=' + ayah, { method:'GET' });
+    const data = await res.json();
+    if(data.status !== 'ok') throw new Error(data.message || 'Could not fetch that verse.');
+    const ref = sura + ':' + ayah;
+    const refLabel = SURAH_DISPLAY_NAMES[sura] + ' ' + ref;
+    box.innerHTML = `
+      <div class="verse-ref-tag">${escapeHtml_(refLabel)}</div>
+      <textarea class="verse-arabic-box" id="vf-arabic" dir="rtl">${escapeHtml_(data.arabic)}</textarea>
+      <div class="verse-actions-row">
+        <button class="btn-bold" id="vf-bold-btn" type="button">Bold</button>
+        <button class="btn-save-verse" id="vf-save-btn">✓ Save to my verse bank</button>
+      </div>`;
+    wireBoldButton_('vf-bold-btn', 'vf-arabic');
+    document.getElementById('vf-save-btn').addEventListener('click', ()=>{
+      const arabic = document.getElementById('vf-arabic').value.trim();
+      saveFetchedVerse(sura, ayah, ref, arabic);
+      const saveBtn = document.getElementById('vf-save-btn');
+      saveBtn.textContent = 'Saved ✓';
+      saveBtn.disabled = true;
+    });
+  }catch(err){
+    box.innerHTML = `<div class="import-status" style="display:block;color:var(--red)">Could not fetch that verse: ${escapeHtml_(err.message || 'unknown error')}</div>`;
+  }
+  btn.disabled = false;
+}
+function saveFetchedVerse(sura, ayah, reference, arabic){
+  const existing = verses.find(v => v.sura===sura && v.ayah===ayah);
+  if(existing){
+    existing.arabic = arabic;
+    existing.synced = false;
+  } else {
+    verses.push({
+      id: uid_(), sura, ayah, reference, arabic, note: '',
+      dateAdded: todayStr(), starred: false, synced: false
+    });
+  }
+  saveVerses();
+  renderVerseBank();
+  showToast('Verse saved to bank');
+}
+
+/* ── bank rendering (always sorted in Qur'an order; re-sorts on every
+   render, so a verse added in between existing ones slots into place
+   automatically — nothing to do manually) ── */
+let editingVerseId = null;
+function verseCardHtml_(v){
+  if(editingVerseId === v.id){
+    return `<div class="verse-card">
+      <div class="verse-ref-tag">${escapeHtml_(SURAH_DISPLAY_NAMES[v.sura] + ' ' + v.reference)}</div>
+      <textarea class="verse-arabic-box" id="ve-arabic-${v.id}" dir="rtl">${escapeHtml_(v.arabic)}</textarea>
+      <div class="verse-actions-row">
+        <button class="btn-bold" id="ve-bold-${v.id}" type="button">Bold</button>
+        <button class="verse-card-btn" onclick="saveVerseEdit('${v.id}')">Save</button>
+        <button class="verse-card-btn" onclick="cancelVerseEdit()">Cancel</button>
+      </div>
+    </div>`;
+  }
+  return `<div class="verse-card">
+    <div class="verse-card-top">
+      <div class="verse-ref-tag">${escapeHtml_(SURAH_DISPLAY_NAMES[v.sura] + ' ' + v.reference)} · Juz ${getJuzForVerse_(v.sura, v.ayah)}</div>
+      <button class="verse-star-btn${v.starred?' on':''}" onclick="toggleVerseStar('${v.id}')" title="${v.starred?'Remove star':'Star'}">${v.starred?'★':'☆'}</button>
+    </div>
+    <div class="verse-arabic-display">${mdToHtml_(v.arabic)}</div>
+    <div class="verse-card-actions">
+      <button class="verse-card-btn" onclick="copyVerseText('${v.id}')">⧉ Copy</button>
+      <button class="verse-card-btn" onclick="startVerseEdit('${v.id}')">✎ Edit / Bold</button>
+      <button class="verse-card-btn danger" onclick="deleteVerse('${v.id}')">✕ Delete</button>
+    </div>
+  </div>`;
+}
+function renderVerseBank(){
+  const list = document.getElementById('verse-bank-list');
+  if(!list) return;
+  const query = (document.getElementById('vb-search').value || '').trim().toLowerCase();
+  const groupBy = document.getElementById('vb-group').value;
+  let items = verses.filter(v=>{
+    if(groupBy === 'starred' && !v.starred) return false;
+    if(!query) return true;
+    const hay = (v.reference + ' ' + SURAH_DISPLAY_NAMES[v.sura] + ' ' + stripBold_(v.arabic)).toLowerCase();
+    return hay.includes(query);
+  });
+  // Canonical Qur'an order, every render — this is what keeps a newly
+  // saved verse correctly interleaved with whatever was already here.
+  items = items.slice().sort((a,b)=> compareSuraAyah_({sura:a.sura,ayah:a.ayah}, {sura:b.sura,ayah:b.ayah}));
+
+  if(!items.length){
+    list.innerHTML = '<div class="empty">No verses saved yet — fetch one above and save it here.</div>';
+    return;
+  }
+
+  if(groupBy === 'surah' || groupBy === 'juz'){
+    let html = '';
+    let lastKey = null;
+    items.forEach(v=>{
+      const key = groupBy === 'juz' ? getJuzForVerse_(v.sura, v.ayah) : v.sura;
+      if(key !== lastKey){
+        const label = groupBy === 'juz' ? ('Juz ' + key) : (key + '. ' + SURAH_DISPLAY_NAMES[key]);
+        html += `<div class="verse-group-label">${escapeHtml_(label)}</div>`;
+        lastKey = key;
+      }
+      html += verseCardHtml_(v);
+    });
+    list.innerHTML = html;
+  } else {
+    list.innerHTML = items.map(verseCardHtml_).join('');
+  }
+}
+function toggleVerseStar(id){
+  const v = verses.find(x=>x.id===id); if(!v) return;
+  v.starred = !v.starred; v.synced = false;
+  saveVerses(); renderVerseBank();
+}
+function copyVerseText(id){
+  const v = verses.find(x=>x.id===id); if(!v) return;
+  navigator.clipboard.writeText(stripBold_(v.arabic)).then(()=>showToast('Verse copied'));
+}
+function startVerseEdit(id){ editingVerseId = id; renderVerseBank(); wireBoldButton_('ve-bold-'+id, 've-arabic-'+id); }
+function cancelVerseEdit(){ editingVerseId = null; renderVerseBank(); }
+function saveVerseEdit(id){
+  const v = verses.find(x=>x.id===id); if(!v) return;
+  v.arabic = document.getElementById('ve-arabic-'+id).value.trim();
+  v.synced = false;
+  editingVerseId = null;
+  saveVerses(); renderVerseBank();
+}
+function deleteVerse(id){
+  if(!confirm('Remove this verse from your bank?')) return;
+  verses = verses.filter(x=>x.id!==id);
+  saveVerses(); renderVerseBank();
+  showToast('Verse removed');
+}
+
+/* ── Sheet sync for the verse bank (separate endpoint/sheet from the
+   daily log sync above — see manzil-quran-sync.gs) ── */
+let _verseSyncTimer = null;
+function scheduleVerseSyncDebounced(){
+  if(!verseEndpoint_()) return;
+  clearTimeout(_verseSyncTimer);
+  _verseSyncTimer = setTimeout(pushVersesToSheet, 2000);
+}
+async function pushVersesToSheet(){
+  const endpoint = verseEndpoint_();
+  const statusEl = document.getElementById('verse-sync-status');
+  if(!endpoint){
+    if(statusEl){ statusEl.textContent = 'Add the Verse Sync Web App URL below first.'; statusEl.style.color = 'var(--red)'; }
+    return;
+  }
+  if(statusEl){ statusEl.textContent = '⟳ Syncing verse bank…'; statusEl.style.color = 'var(--text3)'; }
+  try{
+    await fetch(endpoint, {
+      method: 'POST',
+      mode: 'no-cors', // required when opening from file:// — response is opaque but data arrives
+      body: JSON.stringify({ type: 'manzil_verses_sync', verses })
+    });
+    verses.forEach(v=> v.synced = true);
+    localStorage.setItem('manzil-verses-v1', JSON.stringify(verses));
+    if(statusEl){ statusEl.textContent = '✓ Verse bank synced'; statusEl.style.color = 'var(--green)'; }
+  }catch(e){
+    if(statusEl){ statusEl.textContent = '✕ Sync error — ' + e.message; statusEl.style.color = 'var(--red)'; }
+  }
+}
+async function restoreVersesFromSheet(){
+  const endpoint = verseEndpoint_();
+  const statusEl = document.getElementById('verse-sync-status');
+  if(!endpoint){ showToast('Add the Verse Sync Web App URL first'); return; }
+  if(!confirm('Replace your local verse bank with the copy from the Sheet? Any unsynced local changes will be lost.')) return;
+  if(statusEl){ statusEl.textContent = '⟳ Restoring…'; statusEl.style.color = 'var(--text3)'; }
+  try{
+    const res = await fetch(endpoint + '?type=manzil_verses', { method:'GET' });
+    const data = await res.json();
+    if(!Array.isArray(data)) throw new Error('Unexpected response from Sheet.');
+    verses = data.map(r=>({
+      id: r.id || uid_(), sura: Number(r.sura), ayah: Number(r.ayah), reference: r.reference || (r.sura+':'+r.ayah),
+      arabic: r.arabic || '', note: r.note || '', dateAdded: r.dateAdded || todayStr(),
+      starred: r.starred === true || r.starred === 'Yes' || r.starred === 'true', synced: true
+    }));
+    localStorage.setItem('manzil-verses-v1', JSON.stringify(verses));
+    renderVerseBank();
+    if(statusEl){ statusEl.textContent = '✓ Restored ' + verses.length + ' verse(s) from the Sheet'; statusEl.style.color = 'var(--green)'; }
+    showToast('Verse bank restored');
+  }catch(e){
+    if(statusEl){ statusEl.textContent = '✕ Restore error — ' + e.message; statusEl.style.color = 'var(--red)'; }
+  }
+}
+
+populateJuzSelect_();
+onVerseJuzChange();
+{
+  const savedEndpoint = verseEndpoint_();
+  if(savedEndpoint) document.getElementById('vb-endpoint').value = savedEndpoint;
+}
+renderVerseBank();
 
 renderSlots();
 renderHalfPicker();
