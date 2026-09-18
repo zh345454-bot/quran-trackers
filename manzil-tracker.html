@@ -609,6 +609,8 @@
   .verse-bank-toolbar input { flex: 2; min-width: 140px; }
   .verse-bank-toolbar select { flex: 1; min-width: 110px; }
 
+  .verse-bank-count { font-size: 11.5px; color: var(--text3); margin: -2px 0 10px; }
+
   .verse-group-label {
     font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
     color: var(--text3); margin: 14px 0 6px;
@@ -625,6 +627,10 @@
     color: var(--text3); padding: 0 2px; flex-shrink: 0;
   }
   .verse-star-btn.on { color: var(--gold); }
+  .verse-star-days {
+    font-size: 11px; font-weight: 500; color: var(--gold);
+    margin: -4px 0 8px; letter-spacing: 0.02em;
+  }
   .verse-card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
   .verse-card-btn {
     padding: 5px 11px; border-radius: 6px; font-size: 11.5px; font-weight: 500;
@@ -777,6 +783,9 @@
       <p class="section-hint">Saved verses, always kept in Qur'an order (Surah → Ayah) — a new verse slots into its correct place automatically.</p>
       <div class="verse-bank-toolbar">
         <input type="text" id="vb-search" placeholder="Search reference or Arabic" oninput="renderVerseBank()">
+        <select id="vb-juz-filter" onchange="renderVerseBank()">
+          <option value="">All Juz</option>
+        </select>
         <select id="vb-group" onchange="renderVerseBank()">
           <option value="">Qur'an order (no grouping)</option>
           <option value="surah">Group by Surah</option>
@@ -784,6 +793,7 @@
           <option value="starred">Starred only</option>
         </select>
       </div>
+      <div class="verse-bank-count" id="verse-bank-count"></div>
       <div id="verse-bank-list"></div>
 
       <div class="verse-sync-row">
@@ -1772,6 +1782,15 @@ function populateJuzSelect_(){
   const sel = document.getElementById('vf-juz');
   sel.innerHTML = JUZ_STARTS.map(j => `<option value="${j.juz}">Juz ${j.juz}</option>`).join('');
 }
+// The recitation filter — separate from the fetch panel's Juz dropdown
+// above, this one narrows the verse bank down to a single Juz so you can
+// go through it without the rest of your saved verses in the way.
+function populateVerseJuzFilter_(){
+  const sel = document.getElementById('vb-juz-filter');
+  if(!sel) return;
+  const opts = JUZ_STARTS.map(j => `<option value="${j.juz}">Juz ${j.juz}</option>`).join('');
+  sel.innerHTML = '<option value="">All Juz</option>' + opts;
+}
 function onVerseJuzChange(){
   const juz = Number(document.getElementById('vf-juz').value);
   const ranges = JUZ_SURAH_RANGES[juz] || [];
@@ -1793,6 +1812,16 @@ function onVerseSurahChange(){
 
 /* ── verse bank state ── */
 let verses = JSON.parse(localStorage.getItem('manzil-verses-v1') || '[]');
+// Backfill for verses starred before this feature existed (or restored from
+// an older Sheet copy that has no starredAt column yet) — start their count
+// from today rather than leaving them with no date at all.
+let _versesBackfilled = false;
+verses.forEach(v=>{
+  if(v.starred && !v.starredAt){ v.starredAt = todayStr(); _versesBackfilled = true; }
+  if(v.starred === undefined) v.starred = false;
+  if(v.starredAt === undefined) v.starredAt = null;
+});
+if(_versesBackfilled) localStorage.setItem('manzil-verses-v1', JSON.stringify(verses));
 function saveVerses(){
   localStorage.setItem('manzil-verses-v1', JSON.stringify(verses));
   scheduleVerseSyncDebounced();
@@ -1850,7 +1879,7 @@ function saveFetchedVerse(sura, ayah, reference, arabic){
   } else {
     verses.push({
       id: uid_(), sura, ayah, reference, arabic, note: '',
-      dateAdded: todayStr(), starred: false, synced: false
+      dateAdded: todayStr(), starred: false, starredAt: null, synced: false
     });
   }
   saveVerses();
@@ -1879,6 +1908,7 @@ function verseCardHtml_(v){
       <div class="verse-ref-tag">${escapeHtml_(SURAH_DISPLAY_NAMES[v.sura] + ' ' + v.reference)} · Juz ${getJuzForVerse_(v.sura, v.ayah)}</div>
       <button class="verse-star-btn${v.starred?' on':''}" onclick="toggleVerseStar('${v.id}')" title="${v.starred?'Remove star':'Star'}">${v.starred?'★':'☆'}</button>
     </div>
+    ${v.starred && v.starredAt ? `<div class="verse-star-days">${escapeHtml_(daysStarredLabel_(v.starredAt))}</div>` : ''}
     <div class="verse-arabic-display">${mdToHtml_(v.arabic)}</div>
     <div class="verse-card-actions">
       <button class="verse-card-btn" onclick="copyVerseText('${v.id}')">⧉ Copy</button>
@@ -1892,8 +1922,11 @@ function renderVerseBank(){
   if(!list) return;
   const query = (document.getElementById('vb-search').value || '').trim().toLowerCase();
   const groupBy = document.getElementById('vb-group').value;
+  const juzFilterEl = document.getElementById('vb-juz-filter');
+  const juzFilter = juzFilterEl ? Number(juzFilterEl.value) || null : null;
   let items = verses.filter(v=>{
     if(groupBy === 'starred' && !v.starred) return false;
+    if(juzFilter && getJuzForVerse_(v.sura, v.ayah) !== juzFilter) return false;
     if(!query) return true;
     const hay = (v.reference + ' ' + SURAH_DISPLAY_NAMES[v.sura] + ' ' + stripBold_(v.arabic)).toLowerCase();
     return hay.includes(query);
@@ -1902,8 +1935,19 @@ function renderVerseBank(){
   // saved verse correctly interleaved with whatever was already here.
   items = items.slice().sort((a,b)=> compareSuraAyah_({sura:a.sura,ayah:a.ayah}, {sura:b.sura,ayah:b.ayah}));
 
+  const countEl = document.getElementById('verse-bank-count');
+  if(countEl){
+    if(juzFilter){
+      countEl.textContent = items.length + (items.length===1 ? ' verse' : ' verses') + ' in Juz ' + juzFilter + (verses.length ? ' (of ' + verses.length + ' saved)' : '');
+    } else {
+      countEl.textContent = verses.length ? (verses.length + (verses.length===1 ? ' verse saved' : ' verses saved')) : '';
+    }
+  }
+
   if(!items.length){
-    list.innerHTML = '<div class="empty">No verses saved yet — fetch one above and save it here.</div>';
+    list.innerHTML = juzFilter
+      ? `<div class="empty">No saved verses in Juz ${juzFilter} yet.</div>`
+      : '<div class="empty">No verses saved yet — fetch one above and save it here.</div>';
     return;
   }
 
@@ -1926,8 +1970,21 @@ function renderVerseBank(){
 }
 function toggleVerseStar(id){
   const v = verses.find(x=>x.id===id); if(!v) return;
-  v.starred = !v.starred; v.synced = false;
+  v.starred = !v.starred;
+  // A fresh star starts a fresh count — unstarring clears it, so re-starring
+  // later begins counting from that new day rather than the original one.
+  v.starredAt = v.starred ? todayStr() : null;
+  v.synced = false;
   saveVerses(); renderVerseBank();
+}
+// Days since a verse was starred, counting the starred day itself as day 1.
+function daysStarredLabel_(startDateStr){
+  if(!startDateStr) return '';
+  const start = new Date(startDateStr + 'T00:00:00');
+  const now = new Date(todayStr() + 'T00:00:00');
+  const days = Math.round((now - start) / 86400000) + 1;
+  if(days <= 1) return 'Starred today';
+  return 'Starred for ' + days + ' days';
 }
 function copyVerseText(id){
   const v = verses.find(x=>x.id===id); if(!v) return;
@@ -1991,8 +2048,12 @@ async function restoreVersesFromSheet(){
     verses = data.map(r=>({
       id: r.id || uid_(), sura: Number(r.sura), ayah: Number(r.ayah), reference: r.reference || (r.sura+':'+r.ayah),
       arabic: r.arabic || '', note: r.note || '', dateAdded: r.dateAdded || todayStr(),
-      starred: r.starred === true || r.starred === 'Yes' || r.starred === 'true', synced: true
+      starred: r.starred === true || r.starred === 'Yes' || r.starred === 'true',
+      starredAt: r.starredAt || null, synced: true
     }));
+    // Same backfill as on load — an older Sheet copy synced before this
+    // feature existed may have starred rows with no starredAt yet.
+    verses.forEach(v=>{ if(v.starred && !v.starredAt) v.starredAt = todayStr(); });
     localStorage.setItem('manzil-verses-v1', JSON.stringify(verses));
     renderVerseBank();
     if(statusEl){ statusEl.textContent = '✓ Restored ' + verses.length + ' verse(s) from the Sheet'; statusEl.style.color = 'var(--green)'; }
@@ -2004,6 +2065,7 @@ async function restoreVersesFromSheet(){
 
 populateJuzSelect_();
 onVerseJuzChange();
+populateVerseJuzFilter_();
 {
   const savedEndpoint = verseEndpoint_();
   if(savedEndpoint) document.getElementById('vb-endpoint').value = savedEndpoint;
