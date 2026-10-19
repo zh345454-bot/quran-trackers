@@ -554,6 +554,70 @@
     letter-spacing: 0.07em; color: var(--gold); margin-bottom: 5px; margin-top: 10px;
   }
 
+  /* ── Burst Mode (10-page groups) ── */
+  .burst-start-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .burst-start-text { flex: 1; min-width: 160px; }
+  .burst-start-title { font-size: 13px; font-weight: 500; color: var(--text); }
+  .burst-start-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .btn-burst {
+    padding: 11px 18px; border-radius: 10px; border: none; cursor: pointer;
+    background: var(--gold); color: #fff; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+  }
+  .btn-burst:disabled { opacity: 0.5; cursor: default; }
+
+  #burst-overlay {
+    position: fixed; inset: 0; z-index: 500; padding: 24px;
+    background: rgba(44,36,22,0.94);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+  }
+  #burst-overlay.open { opacity: 1; pointer-events: all; }
+  #burst-card {
+    background: var(--surface); border: 1px solid var(--gold-border); border-radius: 18px;
+    width: 100%; max-width: 400px; padding: 26px 24px 18px; text-align: center;
+  }
+  .burst-bismillah { font-family: 'Amiri', serif; font-size: 22px; color: var(--gold); margin-bottom: 10px; }
+  #burst-counter { font-size: 11px; color: var(--text3); letter-spacing: 0.06em; margin-bottom: 12px; }
+  #burst-progress-bar { height: 3px; background: var(--surface2); border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
+  #burst-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--green), var(--gold)); transition: width 0.35s ease; }
+  #burst-juz-name { font-family: 'Lora', serif; font-size: 22px; font-weight: 600; color: var(--text); line-height: 1.25; }
+  #burst-pages { font-family: 'Lora', serif; font-size: 34px; font-weight: 600; color: var(--gold); margin: 8px 0 6px; }
+  #burst-meta { font-size: 11.5px; color: var(--text2); margin-bottom: 20px; min-height: 18px; }
+  .burst-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .burst-btn-done, .burst-btn-skip {
+    padding: 15px; border-radius: 10px; font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+  }
+  .burst-btn-done { border: 2px solid var(--green); background: var(--green); color: #fff; }
+  .burst-btn-skip { border: 1px solid var(--border); background: transparent; color: var(--text2); }
+  .burst-btn-skip:hover { border-color: var(--text3); color: var(--text); }
+  .burst-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .burst-link {
+    background: none; border: none; cursor: pointer; padding: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 11.5px; color: var(--text3);
+  }
+  .burst-link:hover { color: var(--text2); }
+  .burst-link:disabled { opacity: 0.35; cursor: default; }
+
+  #burst-fab {
+    position: fixed; right: 22px; bottom: 24px; z-index: 200;
+    width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer;
+    background: var(--green); color: #fff; font-size: 22px;
+    box-shadow: 0 4px 18px rgba(59,109,58,0.4);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #burst-fab.has-left { background: var(--gold); box-shadow: 0 4px 18px rgba(200,146,42,0.45); }
+
+  #micro-win {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    background: var(--gold-light); border: 1px solid var(--gold-border); color: var(--gold);
+    border-radius: 99px; padding: 8px 20px; font-size: 13px; font-weight: 500;
+    z-index: 600; pointer-events: none; opacity: 0; white-space: nowrap;
+  }
+  #micro-win.flash { animation: microWinPulse 1.4s ease forwards; }
+  @keyframes microWinPulse { 0% { opacity: 0; } 15% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+
   /* ── Qur'an verse fetch + bank ── */
   .verse-search-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
   .verse-dropdowns { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -701,6 +765,14 @@
         <button class="btn-done" onclick="logToday('done')">✓ Log reading</button>
         <button class="btn-skip" onclick="logToday('skipped')">Skip today</button>
       </div>
+    </div>
+
+    <div class="card burst-start-card">
+      <div class="burst-start-text">
+        <div class="burst-start-title">⚡ Can't get started? Burst Mode</div>
+        <div class="burst-start-sub" id="burst-start-sub"></div>
+      </div>
+      <button class="btn-burst" id="burst-start-btn" onclick="startBurstMode()">Start</button>
     </div>
 
     <div class="card">
@@ -1154,8 +1226,16 @@ function logToday(status) {
   }
 
   const existing = log.findIndex(e=>e.date===d);
-  if(existing>=0) log.splice(existing,1);
-  log.push({ date:d, status, juzList: status==='done' ? juzList : [] });
+  let finalList = status==='done' ? juzList : [];
+  if(existing>=0){
+    const prev = log[existing];
+    // Keep anything already logged today (e.g. Burst Mode groups) rather than overwriting it
+    if(status==='done' && prev.status==='done' && Array.isArray(prev.juzList)){
+      finalList = [...prev.juzList, ...juzList.filter(r=>!prev.juzList.includes(r))];
+    }
+    log.splice(existing,1);
+  }
+  log.push({ date:d, status, juzList: finalList });
   save();
 
   slots=[null];
@@ -1646,6 +1726,171 @@ function renderAll() {
   renderToday(); renderWeek(); renderStats();
   renderLog(); renderRotation(); renderMonthly(); renderExport(); renderSettings();
   if(typeof renderVerseBank === 'function') renderVerseBank();
+  if(typeof updateBurstUi_ === 'function') updateBurstUi_();
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Burst Mode — one 10-page group at a time, for when starting feels hard.
+   Suggests the unfinished groups from the Active Juz Pool (anything not yet
+   read this calendar month, as the Monthly tab counts it), starting with
+   today's scheduled juz. Done → logged straight into today's Log entry.
+   ══════════════════════════════════════════════════════════════════════ */
+
+// Madinah Mushaf (604 pages): Juz 1 = p.1–21, Juz 2–29 = 20 pages each
+// (Juz 2 = 22–41), Juz 30 = p.582–604.
+function juzPageRange_(j){
+  const start = j === 1 ? 1 : 20*j - 18;
+  const end = j === 30 ? 604 : (20*(j+1) - 18) - 1;
+  return { start, end };
+}
+// Two groups per juz, so each one maps onto the log's existing half-juz
+// format ("2a" / "2b"): the 1st half is the first 10 pages (Juz 2 → 22–31),
+// the 2nd half is the rest (Juz 2 → 32–41; Juz 1 and 30 carry their extra
+// pages here, so there's never a stray 1-page or 3-page group).
+function juzGroups_(j){
+  const { start, end } = juzPageRange_(j);
+  return [
+    { juz:j, half:'a', key:j + 'a', from:start,    to:start + 9 },
+    { juz:j, half:'b', key:j + 'b', from:start+10, to:end }
+  ];
+}
+function groupDoneThisMonth_(g, mp){
+  return log.some(e => e.date.startsWith(mp) && e.status === 'done' && Array.isArray(e.juzList) &&
+    e.juzList.some(r => r === g.juz || r === g.key));
+}
+function buildBurstQueue_(){
+  if(!ALL_JUZ.length) return [];
+  const mp = todayStr().slice(0,7);
+  const rot = buildRotation();
+  const startIdx = cycleIdx(todayStr());
+  const order = [];
+  for(let i=0;i<rot.length;i++) rot[(startIdx + i) % rot.length].forEach(j => order.push(j));
+  const queue = [];
+  order.forEach(j => juzGroups_(j).forEach(g => { if(!groupDoneThisMonth_(g, mp)) queue.push(g); }));
+  return queue;
+}
+
+let _burstQueue = [];
+let _burstTotal = 0;
+let _burstDoneCount = 0;
+let _burstUndo = [];
+
+function updateBurstUi_(){
+  const left = buildBurstQueue_();
+  const sub = document.getElementById('burst-start-sub');
+  const btn = document.getElementById('burst-start-btn');
+  const fab = document.getElementById('burst-fab');
+  if(sub){
+    if(!ALL_JUZ.length) sub.textContent = 'Add juz to your pool first (⚙ Juz tab).';
+    else if(!left.length) sub.textContent = 'Your whole pool is covered this month ✦';
+    else sub.textContent = left.length + (left.length === 1 ? ' group' : ' groups') + ' left this month · next: Juz ' + left[0].juz + ', pages ' + left[0].from + '–' + left[0].to;
+  }
+  if(btn) btn.disabled = !left.length;
+  if(fab){
+    fab.classList.toggle('has-left', left.length > 0);
+    fab.title = left.length ? (left.length + ' groups left — start Burst Mode') : 'Nothing left this month';
+  }
+}
+
+function startBurstMode(){
+  _burstQueue = buildBurstQueue_();
+  if(!_burstQueue.length){
+    showToast(ALL_JUZ.length ? 'Every group in your pool is done this month ✦' : 'Add juz to your pool first (⚙ Juz tab)');
+    return;
+  }
+  _burstTotal = _burstQueue.length;
+  _burstDoneCount = 0;
+  _burstUndo = [];
+  showBurstGroup_();
+  document.getElementById('burst-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function showBurstGroup_(){
+  const g = _burstQueue[0];
+  if(!g){ burstComplete_(); return; }
+  const pct = _burstTotal ? Math.round(_burstDoneCount / _burstTotal * 100) : 0;
+  document.getElementById('burst-counter').textContent =
+    _burstDoneCount + ' of ' + _burstTotal + ' done · ' + _burstQueue.length + ' left';
+  document.getElementById('burst-progress-fill').style.width = pct + '%';
+  document.getElementById('burst-juz-name').textContent =
+    'Juz ' + g.juz + ' · ' + (g.half === 'a' ? '1st half' : '2nd half');
+  document.getElementById('burst-pages').textContent = 'Pages ' + g.from + '–' + g.to;
+  const meta = [(g.to - g.from + 1) + ' pages'];
+  if(scheduledJuz(todayStr()).includes(g.juz)) meta.push("today's rotation");
+  document.getElementById('burst-meta').textContent = meta.join(' · ');
+  document.getElementById('burst-undo-btn').disabled = _burstUndo.length === 0;
+}
+
+function burstDone(){
+  const g = _burstQueue[0];
+  if(!g) return;
+  const d = todayStr();
+  const idx = log.findIndex(e => e.date === d);
+  // Snapshot first so Undo can put today's entry back exactly as it was.
+  const prev = idx >= 0 ? JSON.parse(JSON.stringify(log[idx])) : null;
+  if(idx >= 0){
+    const e = log[idx];
+    e.status = 'done';
+    if(!Array.isArray(e.juzList)) e.juzList = [];
+    if(!e.juzList.includes(g.key) && !e.juzList.includes(g.juz)) e.juzList.push(g.key);
+  } else {
+    log.push({ date: d, status: 'done', juzList: [g.key] });
+  }
+  save();
+  _burstUndo.push({ group: g, prev });
+  _burstQueue.shift();
+  _burstDoneCount++;
+  flashMicroWin_(_burstDoneCount);
+  renderAll();
+  if(!_burstQueue.length) burstComplete_(); else showBurstGroup_();
+}
+
+function burstSkip(){
+  if(_burstQueue.length < 2){ showToast('This is the last group left'); return; }
+  _burstQueue.push(_burstQueue.shift());
+  showBurstGroup_();
+}
+
+function burstUndo(){
+  const last = _burstUndo.pop();
+  if(!last) return;
+  const d = todayStr();
+  const idx = log.findIndex(e => e.date === d);
+  if(last.prev){
+    if(idx >= 0) log[idx] = last.prev; else log.push(last.prev);
+  } else if(idx >= 0){
+    log.splice(idx, 1);
+  }
+  save();
+  _burstQueue.unshift(last.group);
+  _burstDoneCount = Math.max(0, _burstDoneCount - 1);
+  renderAll();
+  showBurstGroup_();
+  showToast('Undone — Juz ' + last.group.juz + ' ' + (last.group.half === 'a' ? '1st' : '2nd') + ' half is back in the queue');
+}
+
+function closeBurst_(){
+  document.getElementById('burst-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function burstAbort(){
+  const n = _burstDoneCount;
+  closeBurst_();
+  showToast(n > 0 ? 'Saved — ' + n + (n === 1 ? ' group' : ' groups') + ' logged. BarakAllahu feek.' : 'Session ended. Come back when ready.');
+}
+function burstComplete_(){
+  const n = _burstDoneCount;
+  closeBurst_();
+  showToast('All ' + n + (n === 1 ? ' group' : ' groups') + ' done — JazakAllahu khayran 🌿');
+}
+function flashMicroWin_(n){
+  const el = document.getElementById('micro-win');
+  if(!el) return;
+  el.textContent = '✦ ' + n + (n === 1 ? ' group' : ' groups') + ' done';
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -2085,6 +2330,27 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+<!-- Burst Mode overlay -->
+<div id="burst-overlay">
+  <div id="burst-card">
+    <div class="burst-bismillah">بِسْمِ اللهِ</div>
+    <div id="burst-counter"></div>
+    <div id="burst-progress-bar"><div id="burst-progress-fill"></div></div>
+    <div id="burst-juz-name"></div>
+    <div id="burst-pages"></div>
+    <div id="burst-meta"></div>
+    <div class="burst-actions">
+      <button class="burst-btn-done" onclick="burstDone()">✓ Done</button>
+      <button class="burst-btn-skip" onclick="burstSkip()">→ Skip for now</button>
+    </div>
+    <div class="burst-foot">
+      <button class="burst-link" id="burst-undo-btn" onclick="burstUndo()" disabled>↶ Undo last</button>
+      <button class="burst-link" onclick="burstAbort()">End session</button>
+    </div>
+  </div>
+</div>
+<div id="micro-win"></div>
+<button id="burst-fab" onclick="startBurstMode()" title="Start Burst Mode">⚡</button>
 <div id="toast"></div>
 </body>
 </html>
