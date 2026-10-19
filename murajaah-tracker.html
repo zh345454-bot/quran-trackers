@@ -1773,8 +1773,8 @@ function renderToday() {
     const s = getStatus(p);
     return s === 'due' || s === 'overdue';
   }).sort((a,b) => {
-    if (!a.nextDueDate) return -1;
-    return a.nextDueDate.localeCompare(b.nextDueDate);
+    const byDate = (a.nextDueDate||'').localeCompare(b.nextDueDate||'');
+    return byDate !== 0 ? byDate : comparePageOrder_(a, b);
   });
 
   const hotLayerItems = data.pages
@@ -2261,13 +2261,30 @@ function fmtMins(m) {
 }
 
 // ── Due pages helper ─────────────────────────────────────────────────────────
+// Mushaf page number pulled from the entry's name ("Page 42 – Juz 2 – …" → 42).
+// Prefers a number right after "Page"/"p."; otherwise the first number found.
+function pageNumberOf_(p) {
+  const name = p.name || '';
+  const m = name.match(/(?:pages?|p\.?)\s*(\d{1,3})/i) || name.match(/(\d{1,3})/);
+  return m ? parseInt(m[1], 10) : Infinity;
+}
+// Tiebreaker for pages that are due on the same day: ascending page order
+// (122, 126, 129, 130, 140), then natural name order. Without this, ties kept
+// the order pages were added in — newest first — which read as descending.
+function comparePageOrder_(a, b) {
+  const na = pageNumberOf_(a), nb = pageNumberOf_(b);
+  if (na !== nb) return na < nb ? -1 : 1;
+  return (a.name || '').localeCompare(b.name || '', undefined, { numeric: true });
+}
+
 function getDuePages() {
   const data = getData();
   return data.pages.filter(p => ['due','overdue'].includes(getStatus(p)))
     .sort((a,b) => {
       if (getStatus(a) === 'overdue' && getStatus(b) !== 'overdue') return -1;
       if (getStatus(b) === 'overdue' && getStatus(a) !== 'overdue') return 1;
-      return (a.nextDueDate||'').localeCompare(b.nextDueDate||'');
+      const byDate = (a.nextDueDate||'').localeCompare(b.nextDueDate||'');
+      return byDate !== 0 ? byDate : comparePageOrder_(a, b);
     });
 }
 
