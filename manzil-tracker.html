@@ -1922,8 +1922,8 @@ async function syncAlarmsToCalendar_(forceOff){
     return true;
   }catch(e){
     let msg;
-    if(e.message === 'OLD_SCRIPT') msg = '✕ Your Apps Script doesn\'t have the alarm update yet. Paste the new script, run authorizeCalendar_ once, then deploy a new version.';
-    else if(/permission|authori/i.test(e.message)) msg = '✕ Google needs your permission: in Apps Script run authorizeCalendar_ once, then deploy a new version.';
+    if(e.message === 'OLD_SCRIPT') msg = '✕ Your Apps Script doesn\'t have the alarm update yet. Paste the new script, run authorizeCalendar once, then deploy a new version.';
+    else if(/permission|authori/i.test(e.message)) msg = '✕ Google needs your permission: in Apps Script run authorizeCalendar once, then deploy a new version.';
     else if(/failed to fetch|networkerror|load failed/i.test(e.message)) msg = '✕ Couldn\'t reach the script — check your connection and that it\'s deployed for "Anyone".';
     else msg = '✕ Couldn\'t sync — ' + e.message;
     setCalStatus_(msg, 'var(--red)');
