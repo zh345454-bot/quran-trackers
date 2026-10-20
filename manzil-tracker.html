@@ -554,6 +554,48 @@
     letter-spacing: 0.07em; color: var(--gold); margin-bottom: 5px; margin-top: 10px;
   }
 
+  /* ── Daily alarms ── */
+  .alarm-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .alarm-row input[type=checkbox], .alarm-opts input[type=checkbox] { accent-color: var(--gold); width: 18px; height: 18px; flex-shrink: 0; }
+  .alarm-time, .alarm-label, .alarm-opts select {
+    padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--surface2); color: var(--text);
+  }
+  .alarm-time { width: 104px; flex-shrink: 0; }
+  .alarm-label { flex: 1; min-width: 0; }
+  .alarm-opts { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin: 12px 0 4px; font-size: 12.5px; color: var(--text2); }
+  .alarm-opts label { display: flex; align-items: center; gap: 6px; }
+
+  .alarm-cal-box { background: var(--gold-light); border: 1px solid var(--gold-border); border-radius: 10px; padding: 11px 13px; margin-bottom: 14px; }
+  .alarm-cal-box label { display: flex; align-items: flex-start; gap: 9px; font-size: 13px; color: var(--text); cursor: pointer; line-height: 1.4; }
+  .alarm-cal-box input[type=checkbox] { accent-color: var(--gold); width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+  .alarm-cal-box .verse-sync-status { margin-top: 6px; }
+
+  #alarm-overlay {
+    position: fixed; inset: 0; z-index: 700; padding: 24px;
+    background: rgba(44,36,22,0.95);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+  }
+  #alarm-overlay.open { opacity: 1; pointer-events: all; }
+  #alarm-ring-card {
+    background: var(--surface); border: 1px solid var(--gold-border); border-radius: 18px;
+    width: 100%; max-width: 380px; padding: 28px 24px 18px; text-align: center;
+  }
+  .alarm-bell { font-size: 44px; animation: alarmWiggle 0.9s ease-in-out infinite; transform-origin: 50% 10%; }
+  @keyframes alarmWiggle { 0%,100% { transform: rotate(0); } 20% { transform: rotate(14deg); } 40% { transform: rotate(-12deg); } 60% { transform: rotate(8deg); } 80% { transform: rotate(-6deg); } }
+  #alarm-ring-time { font-family: 'Lora', serif; font-size: 44px; font-weight: 600; color: var(--gold); margin: 6px 0 2px; }
+  #alarm-ring-label { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  #alarm-ring-meta { font-size: 11.5px; color: var(--text3); min-height: 16px; margin-bottom: 18px; }
+  .alarm-btn-snooze, .alarm-btn-dismiss {
+    display: block; width: 100%; padding: 15px; border-radius: 10px; margin-bottom: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer;
+  }
+  .alarm-btn-snooze { border: 1px solid var(--gold-border); background: var(--gold-light); color: var(--gold); }
+  .alarm-btn-dismiss { border: 2px solid var(--green); background: var(--green); color: #fff; }
+  .alarm-links { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .alarm-links a.burst-link { text-decoration: none; }
+
   /* ── Burst Mode (10-page groups) ── */
   .burst-start-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   .burst-start-text { flex: 1; min-width: 160px; }
@@ -938,6 +980,39 @@
       </div>
       <div class="settings-note">
         Juz 1–30 are valid. The rotation schedule updates automatically — 2 juz/day for pools up to 19 juz, then 3 juz/day from 20 onwards. Each new juz slots into its correct numerical position in the cycle.
+      </div>
+    </div>
+
+    <div class="card" id="alarm-card">
+      <div class="card-label">⏰ Daily alarms</div>
+      <p class="section-hint">Three alarms a day, each with snooze. Change the time, label or on/off any time.</p>
+      <div class="alarm-cal-box">
+        <label>
+          <input type="checkbox" id="alarm-cal-chk" onchange="setCalendarAlarms_(this.checked)">
+          <span><strong>Ring even when the app is closed</strong><br>Your alarms are added to Google Calendar, so your phone notifies you on its own — no need to open it. Snooze from the notification.</span>
+        </label>
+        <div class="verse-sync-status" id="alarm-cal-status"></div>
+      </div>
+      <div id="alarm-list"></div>
+      <div class="alarm-opts">
+        <label>Snooze
+          <select id="alarm-snooze-sel" onchange="setAlarmOpt_('snoozeMins', Number(this.value))">
+            <option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option>
+            <option value="20">20 min</option><option value="30">30 min</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="alarm-sound-chk" onchange="setAlarmOpt_('sound', this.checked)"> Sound</label>
+        <label><input type="checkbox" id="alarm-vib-chk" onchange="setAlarmOpt_('vibrate', this.checked)"> Vibrate</label>
+      </div>
+      <div class="verse-sync-row">
+        <button class="btn-add-juz" onclick="syncCalendarNow_()">↻ Sync to Calendar</button>
+        <button class="btn-add-juz" onclick="alarmTest()">▶ Test alarm</button>
+        <button class="btn-add-juz" onclick="enableAlarmNotifications_()">🔔 Enable notifications</button>
+      </div>
+      <div class="verse-sync-status" id="alarm-notif-status"></div>
+      <div class="verse-sync-status" id="alarm-next"></div>
+      <div class="settings-note" style="margin-top:12px;">
+        With "Ring even when the app is closed" on, the Calendar app on your phone rings at each time. For a louder sound, open Android Settings → Apps → Calendar → Notifications → Event reminders and raise its importance. The in-app alarm screen (with Burst Mode) also appears whenever this app is open. With the option off, alarms only ring while the app is open.
       </div>
     </div>
 
@@ -1730,6 +1805,342 @@ function renderAll() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+   Daily alarms — three configurable alarms with snooze. Everything is
+   stored locally; the scheduler only runs while the app is open, so an
+   alarm that was due while it was closed shows up as "missed" on return.
+   ══════════════════════════════════════════════════════════════════════ */
+const ALARM_KEY = 'manzil-alarms-v1';
+const ALARM_DEFAULTS = {
+  alarms: [
+    { id:'a1', time:'07:00', enabled:true, label:'Manzil — start one 10-page group' },
+    { id:'a2', time:'14:00', enabled:true, label:'Murajaah — clear your due pages' },
+    { id:'a3', time:'21:00', enabled:true, label:"Log today's Manzil & Murajaah" }
+  ],
+  snoozeMins: 10, sound: true, vibrate: true, calendar: false, lastFired: {}, snoozed: {}
+};
+function loadAlarmState_(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(ALARM_KEY));
+    if(saved && Array.isArray(saved.alarms)){
+      return Object.assign({}, ALARM_DEFAULTS, saved, { lastFired: saved.lastFired || {}, snoozed: saved.snoozed || {} });
+    }
+  }catch(e){}
+  return JSON.parse(JSON.stringify(ALARM_DEFAULTS));
+}
+let alarmState = loadAlarmState_();
+function saveAlarmState_(){ localStorage.setItem(ALARM_KEY, JSON.stringify(alarmState)); }
+// Local calendar date. (todayStr() above is UTC-based, which would put the
+// alarm "day" boundary at 08:00 in Malaysia — alarms must flip at midnight.)
+function localDateKey_(d){
+  d = d || new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function alarmDueMs_(a, now){
+  const parts = String(a.time || '').split(':').map(Number);
+  if(parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return null;
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), parts[0], parts[1], 0, 0).getTime();
+}
+function clockLabel_(ms){
+  const d = new Date(ms);
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+/* ── settings ── */
+function renderAlarmSettings_(){
+  const list = document.getElementById('alarm-list');
+  if(!list) return;
+  list.innerHTML = alarmState.alarms.map(a => `
+    <div class="alarm-row">
+      <input type="checkbox" ${a.enabled ? 'checked' : ''} onchange="setAlarmField_('${a.id}','enabled',this.checked)" title="On / off">
+      <input type="time" class="alarm-time" value="${escapeHtml_(a.time)}" onchange="setAlarmField_('${a.id}','time',this.value)">
+      <input type="text" class="alarm-label" value="${escapeHtml_(a.label)}" maxlength="60" onchange="setAlarmField_('${a.id}','label',this.value)">
+    </div>`).join('');
+  document.getElementById('alarm-snooze-sel').value = String(alarmState.snoozeMins);
+  document.getElementById('alarm-sound-chk').checked = !!alarmState.sound;
+  document.getElementById('alarm-vib-chk').checked = !!alarmState.vibrate;
+  document.getElementById('alarm-cal-chk').checked = !!alarmState.calendar;
+  const calEl = document.getElementById('alarm-cal-status');
+  if(calEl && !calEl.textContent && alarmState.calendar) calEl.textContent = '✓ On — alarms are in your Google Calendar.';
+  updateAlarmNotifStatus_();
+  updateNextAlarmLine_();
+}
+// After a time change or re-enable: if today's time has already passed, the
+// alarm starts tomorrow instead of ringing straight away for a past time.
+function rearmAlarm_(a){
+  delete alarmState.snoozed[a.id];
+  const due = alarmDueMs_(a, new Date());
+  if(due !== null && due <= Date.now()) alarmState.lastFired[a.id] = localDateKey_();
+  else delete alarmState.lastFired[a.id];
+}
+function setAlarmField_(id, field, value){
+  const a = alarmState.alarms.find(x => x.id === id);
+  if(!a) return;
+  if(field === 'time'){
+    if(!value){ renderAlarmSettings_(); return; }
+    a.time = value; rearmAlarm_(a);
+  } else if(field === 'enabled'){
+    a.enabled = !!value;
+    if(a.enabled) rearmAlarm_(a); else delete alarmState.snoozed[a.id];
+  } else if(field === 'label'){
+    a.label = (value || '').trim() || 'Quran time';
+  }
+  saveAlarmState_();
+  updateNextAlarmLine_();
+  scheduleCalendarSync_();
+}
+
+/* ── background alarms: mirror the alarms into Google Calendar via the
+   Apps Script, so the phone's Calendar app rings even when this app is closed ── */
+let _calSyncTimer = null;
+function setCalStatus_(msg, color){
+  const el = document.getElementById('alarm-cal-status');
+  if(!el) return;
+  el.textContent = msg;
+  el.style.color = color || 'var(--text3)';
+}
+function calendarAlarmPayload_(forceOff){
+  return {
+    today: localDateKey_(),
+    offset: -new Date().getTimezoneOffset(),      // minutes east of UTC, so the event lands on the right hour
+    alarms: alarmState.alarms.map(a => ({ id: a.id, time: a.time, label: a.label, enabled: forceOff ? false : !!a.enabled }))
+  };
+}
+async function syncAlarmsToCalendar_(forceOff){
+  if(!SYNC_ENDPOINT){ setCalStatus_('No sync endpoint is set in this app.', 'var(--red)'); return false; }
+  setCalStatus_('⟳ Syncing alarms to Google Calendar…');
+  try{
+    const url = SYNC_ENDPOINT + '?action=alarms_sync&data=' + encodeURIComponent(JSON.stringify(calendarAlarmPayload_(forceOff)));
+    const res = await fetch(url, { method: 'GET' });
+    const data = await res.json();
+    if(data && data.ok === false) throw new Error(data.error || 'The script returned an error.');
+    if(!data || !Array.isArray(data.created)) throw new Error('OLD_SCRIPT');
+    if(forceOff) setCalStatus_('Calendar alarms removed.');
+    else {
+      const n = alarmState.alarms.filter(a => a.enabled).length;
+      setCalStatus_('✓ Synced to Google Calendar — ' + n + (n === 1 ? ' alarm' : ' alarms') + ' active.', 'var(--green)');
+    }
+    return true;
+  }catch(e){
+    let msg;
+    if(e.message === 'OLD_SCRIPT') msg = '✕ Your Apps Script doesn\'t have the alarm update yet. Paste the new script, run authorizeCalendar_ once, then deploy a new version.';
+    else if(/permission|authori/i.test(e.message)) msg = '✕ Google needs your permission: in Apps Script run authorizeCalendar_ once, then deploy a new version.';
+    else if(/failed to fetch|networkerror|load failed/i.test(e.message)) msg = '✕ Couldn\'t reach the script — check your connection and that it\'s deployed for "Anyone".';
+    else msg = '✕ Couldn\'t sync — ' + e.message;
+    setCalStatus_(msg, 'var(--red)');
+    return false;
+  }
+}
+async function setCalendarAlarms_(on){
+  alarmState.calendar = !!on;
+  saveAlarmState_();
+  const ok = await syncAlarmsToCalendar_(!on);
+  if(!ok && on){                                   // couldn't turn it on → don't pretend it is
+    alarmState.calendar = false;
+    saveAlarmState_();
+    document.getElementById('alarm-cal-chk').checked = false;
+  }
+}
+function syncCalendarNow_(){
+  if(!alarmState.calendar){
+    document.getElementById('alarm-cal-chk').checked = true;
+    setCalendarAlarms_(true);
+  } else syncAlarmsToCalendar_(false);
+}
+// Edits to times/labels/switches reach the Calendar a moment after you stop changing things.
+function scheduleCalendarSync_(){
+  if(!alarmState.calendar) return;
+  clearTimeout(_calSyncTimer);
+  _calSyncTimer = setTimeout(() => syncAlarmsToCalendar_(false), 1500);
+}
+function setAlarmOpt_(key, value){
+  alarmState[key] = value;
+  saveAlarmState_();
+}
+function updateNextAlarmLine_(){
+  const el = document.getElementById('alarm-next');
+  if(!el) return;
+  const now = new Date(), today = localDateKey_(now);
+  let best = null;
+  alarmState.alarms.forEach(a => {
+    if(!a.enabled) return;
+    const sn = alarmState.snoozed[a.id];
+    let t;
+    if(sn) t = sn.until;
+    else {
+      t = alarmDueMs_(a, now);
+      if(t === null) return;
+      if(alarmState.lastFired[a.id] === today || t <= now.getTime()) t += 86400000;
+    }
+    if(!best || t < best.t) best = { t, a, snoozed: !!sn };
+  });
+  if(!best){ el.textContent = 'All alarms are off.'; return; }
+  const sameDay = localDateKey_(new Date(best.t)) === today;
+  el.textContent = 'Next: ' + (sameDay ? '' : 'tomorrow ') + clockLabel_(best.t) + ' · ' + best.a.label + (best.snoozed ? ' (snoozed)' : '');
+}
+function updateAlarmNotifStatus_(){
+  const el = document.getElementById('alarm-notif-status');
+  if(!el) return;
+  if(!('Notification' in window)) el.textContent = 'Notifications aren\'t supported in this browser.';
+  else if(Notification.permission === 'granted') el.textContent = '🔔 Notifications on — used when the app is in a background tab.';
+  else if(Notification.permission === 'denied') el.textContent = 'Notifications are blocked in your browser settings.';
+  else el.textContent = '';
+}
+function enableAlarmNotifications_(){
+  if(!('Notification' in window)){ showToast('Notifications aren\'t supported here'); return; }
+  Notification.requestPermission().then(updateAlarmNotifStatus_);
+}
+
+/* ── sound (Web Audio beeps — no audio file needed) ── */
+let _audioCtx = null, _alarmSoundTimer = null;
+function getAudioCtx_(){
+  if(!_audioCtx){
+    const C = window.AudioContext || window.webkitAudioContext;
+    if(C) _audioCtx = new C();
+  }
+  return _audioCtx;
+}
+// Browsers only allow sound after a tap, so any tap in the app unlocks it.
+document.addEventListener('pointerdown', function(){
+  const ctx = getAudioCtx_();
+  if(ctx && ctx.state === 'suspended') ctx.resume().catch(()=>{});
+}, { passive: true });
+function beep_(){
+  const ctx = getAudioCtx_();
+  if(!ctx) return;
+  if(ctx.state === 'suspended') ctx.resume().catch(()=>{});
+  const o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime;
+  o.type = 'sine'; o.frequency.value = 880;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.35, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(t); o.stop(t + 0.3);
+}
+function startAlarmSound_(){
+  stopAlarmSound_();
+  let rounds = 0;
+  const pattern = () => {
+    if(alarmState.sound){ beep_(); setTimeout(beep_, 350); setTimeout(beep_, 700); }
+    if(alarmState.vibrate && navigator.vibrate) navigator.vibrate([300,150,300,150,300]);
+    if(++rounds >= 40) stopAlarmSound_();   // ~100 s, then silent (overlay stays)
+  };
+  pattern();
+  _alarmSoundTimer = setInterval(pattern, 2500);
+}
+function stopAlarmSound_(){
+  clearInterval(_alarmSoundTimer); _alarmSoundTimer = null;
+  if(navigator.vibrate) navigator.vibrate(0);
+}
+
+/* ── ringing ── */
+let _alarmQueue = [], _alarmActive = null;
+function ringAlarm_(a, info){
+  _alarmQueue.push({ alarm: a, lateMs: (info && info.lateMs) || 0, snoozeCount: (info && info.snoozeCount) || 0 });
+  if(!_alarmActive) showNextAlarm_();
+}
+function showNextAlarm_(){
+  const item = _alarmQueue.shift();
+  if(!item){ _alarmActive = null; return; }
+  _alarmActive = item;
+  const a = item.alarm;
+  const missed = item.lateMs > 2 * 60000;
+  document.getElementById('alarm-ring-time').textContent = a.time;
+  document.getElementById('alarm-ring-label').textContent = a.label;
+  let meta = '';
+  if(missed) meta = 'Missed — was due ' + Math.max(1, Math.round(item.lateMs / 60000)) + ' min ago';
+  else if(item.snoozeCount) meta = 'Snoozed ' + item.snoozeCount + (item.snoozeCount === 1 ? ' time' : ' times');
+  document.getElementById('alarm-ring-meta').textContent = meta;
+  document.getElementById('alarm-snooze-btn').textContent = 'Snooze ' + alarmState.snoozeMins + ' min';
+  document.getElementById('alarm-overlay').classList.add('open');
+  if(!missed) startAlarmSound_();
+  if(document.hidden) notifyAlarm_(a, missed);
+}
+function notifyAlarm_(a, missed){
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  const title = (missed ? 'Missed alarm · ' : '⏰ ') + a.time;
+  const opts = { body: a.label, tag: 'manzil-alarm-' + a.id, requireInteraction: true };
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.getRegistration){
+      navigator.serviceWorker.getRegistration()
+        .then(r => r ? r.showNotification(title, opts) : new Notification(title, opts))
+        .catch(()=>{});
+    } else { new Notification(title, opts); }
+  }catch(e){}
+}
+function closeAlarmOverlay_(){
+  stopAlarmSound_();
+  document.getElementById('alarm-overlay').classList.remove('open');
+}
+function afterAlarmClosed_(){
+  _alarmActive = null;
+  if(_alarmQueue.length) setTimeout(showNextAlarm_, 300);
+  updateNextAlarmLine_();
+}
+function alarmSnooze(){
+  const item = _alarmActive;
+  if(!item) return;
+  const mins = alarmState.snoozeMins;
+  if(item.alarm.id !== 'test'){
+    alarmState.snoozed[item.alarm.id] = { until: Date.now() + mins * 60000, count: item.snoozeCount + 1 };
+    saveAlarmState_();
+  }
+  closeAlarmOverlay_();
+  showToast('Snoozed for ' + mins + ' min');
+  afterAlarmClosed_();
+}
+function alarmDismiss(){
+  const item = _alarmActive;
+  if(!item) return;
+  if(item.alarm.id !== 'test'){ delete alarmState.snoozed[item.alarm.id]; saveAlarmState_(); }
+  closeAlarmOverlay_();
+  afterAlarmClosed_();
+}
+function alarmStartBurst(){
+  alarmDismiss();
+  startBurstMode();
+}
+function alarmTest(){
+  const ctx = getAudioCtx_();
+  if(ctx && ctx.state === 'suspended') ctx.resume().catch(()=>{});
+  ringAlarm_({ id:'test', time: clockLabel_(Date.now()), label:'Test alarm — this is how your alarms will look' }, {});
+}
+
+/* ── scheduler ── */
+function checkAlarms_(){
+  const now = new Date(), nowMs = now.getTime(), today = localDateKey_(now);
+  let changed = false;
+  alarmState.alarms.forEach(a => {
+    if(!a.enabled) return;
+    const sn = alarmState.snoozed[a.id];
+    if(sn){
+      if(nowMs >= sn.until){
+        delete alarmState.snoozed[a.id]; changed = true;
+        if(nowMs - sn.until <= 3 * 3600000) ringAlarm_(a, { lateMs: nowMs - sn.until, snoozeCount: sn.count });
+      }
+      return;
+    }
+    if(alarmState.lastFired[a.id] === today) return;
+    const due = alarmDueMs_(a, now);
+    if(due === null || nowMs < due) return;
+    alarmState.lastFired[a.id] = today; changed = true;
+    if(nowMs - due > 3 * 3600000) return;        // too stale to be useful — skip quietly
+    ringAlarm_(a, { lateMs: nowMs - due });
+  });
+  if(changed) saveAlarmState_();
+  updateNextAlarmLine_();
+}
+function initAlarms_(){
+  renderAlarmSettings_();
+  checkAlarms_();
+  setInterval(checkAlarms_, 5000);
+  document.addEventListener('visibilitychange', () => { if(!document.hidden) checkAlarms_(); });
+  window.addEventListener('focus', checkAlarms_);
+}
+// The ring overlay sits after this script in the page, so wait for the DOM.
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAlarms_);
+else initAlarms_();
+
+/* ══════════════════════════════════════════════════════════════════════
    Burst Mode — one 10-page group at a time, for when starting feels hard.
    Suggests the unfinished groups from the Active Juz Pool (anything not yet
    read this calendar month, as the Monthly tab counts it), starting with
@@ -2320,6 +2731,8 @@ renderVerseBank();
 renderSlots();
 renderHalfPicker();
 renderAll();
+// The Burst FAB sits after this script in the page, so refresh it once the DOM is complete.
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', updateBurstUi_);
 
 // Show sync config warning on load if endpoint not set
 document.addEventListener('DOMContentLoaded', () => {
@@ -2330,6 +2743,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+<!-- Alarm ring overlay -->
+<div id="alarm-overlay">
+  <div id="alarm-ring-card">
+    <div class="alarm-bell">⏰</div>
+    <div id="alarm-ring-time"></div>
+    <div id="alarm-ring-label"></div>
+    <div id="alarm-ring-meta"></div>
+    <button class="alarm-btn-snooze" id="alarm-snooze-btn" onclick="alarmSnooze()">Snooze</button>
+    <button class="alarm-btn-dismiss" onclick="alarmDismiss()">Dismiss</button>
+    <div class="alarm-links">
+      <button class="burst-link" onclick="alarmStartBurst()">⚡ Start Burst Mode</button>
+      <a class="burst-link" href="murajaah-tracker.html">Open Murajaah →</a>
+    </div>
+  </div>
+</div>
 <!-- Burst Mode overlay -->
 <div id="burst-overlay">
   <div id="burst-card">
